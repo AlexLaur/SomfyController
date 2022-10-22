@@ -11,6 +11,7 @@
 #include <ESP8266WiFi.h>
 #include <ESP8266WebServer.h>
 #include <uri/UriBraces.h>
+#include <Vector.h>
 
 #include "config.h"
 #include "wifi_setup.h"
@@ -35,6 +36,11 @@
 
 ESP8266WebServer web_server(SERVER_PORT);
 
+Remote remotes_array[32];
+static Vector<Remote> remotes(remotes_array);
+
+RemotesContainer container(remotes);
+
 // ============================================================================
 // WEBSERVER CALLBACKS
 // ============================================================================
@@ -43,42 +49,45 @@ void home_page()
 {
     Serial.println("INDEX");
     web_server.send(200, "text/plain", "Page d'accueil");
-}
+    container.print_remotes();
+};
 
 void blind_up()
 {
     Serial.println("UP");
     Serial.println(web_server.pathArg(0));
     web_server.send(200, "text/plain", "UP");
-}
+};
 
 void blind_down()
 {
     Serial.println("DOWN");
     Serial.println(web_server.pathArg(0));
     web_server.send(200, "text/plain", "DOWN");
-}
+};
 
 void blind_stop()
 {
     Serial.println("STOP");
     Serial.println(web_server.pathArg(0));
     web_server.send(200, "text/plain", "STOP");
-}
+};
 
 void blind_prog()
 {
     Serial.println("PROG");
     Serial.println(web_server.pathArg(0));
     web_server.send(200, "text/plain", "PROG");
-}
+};
 
-void not_found_page() { web_server.send(404, "text/plain", "404: Not found"); }
+void not_found_page()
+{
+    web_server.send(404, "text/plain", "404: Not found");
+};
 
 // ============================================================================
 // IMPLEMENTATIONS
 // ============================================================================
-
 
 // ============================================================================
 // ENTRYPOINTS
@@ -102,9 +111,17 @@ void setup()
     web_server.onNotFound(not_found_page);
     // Start the web server
     web_server.begin();
-}
 
-void loop()
-{
-    web_server.handleClient();
-}
+    // Load remotes
+    int nb_remotes
+        = sizeof(SOMFY_CONFIG_REMOTES) / sizeof(SOMFY_CONFIG_REMOTES[0]);
+    container.load_remotes(SOMFY_CONFIG_REMOTES, nb_remotes);
+    container.print_remotes();
+
+    // Vector<Remote> remotes = container.get_remotes();
+    // auto salon_remote = remotes[0];
+    // salon_remote.rolling_code += 1;
+    // container.update_remote(salon_remote);
+};
+
+void loop() { web_server.handleClient(); };
