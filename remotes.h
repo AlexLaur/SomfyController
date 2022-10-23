@@ -54,5 +54,5 @@ public:
 private:
     Vector<Remote> remotes;
     void update(Remote remote); // TODO fix the name
-    void update_remotes_states();
+    void get_remotes_states();
 };

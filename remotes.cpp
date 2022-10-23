@@ -61,7 +61,7 @@ void RemotesManager::load_remotes(const char* remote_names[], int nb_remotes)
         unsigned short eeprom_address = i * sizeof(RemoteState);
         this->remotes.push_back({ id, rolling_code, name, enabled, eeprom_address });
     }
-    this->update_remotes_states();
+    this->get_remotes_states();
     Logger::notice("RemotesManager::load_remotes()", "Remotes loaded.");
 };
 
@@ -209,10 +209,10 @@ void RemotesManager::update(Remote remote)
     Logger::warning("RemotesManager::update()", "Nothing has been updated.");
 };
 
-void RemotesManager::update_remotes_states()
+void RemotesManager::get_remotes_states()
 {
     char s[64]; // used for logger messages
-    Logger::verbose("RemotesManager::update_remotes_states()",
+    Logger::verbose("RemotesManager::get_remotes_states()",
         "Update all remotes with values stored in the memory.");
 
     for (unsigned int i = 0; i < this->remotes.size(); i++)
@@ -224,8 +224,8 @@ void RemotesManager::update_remotes_states()
         {
             snprintf_P(s, sizeof(s), PSTR("Remote '%s' at '%x' seems to be corrupted."),
                 this->remotes[i].name, this->remotes[i].id);
-            Logger::warning("RemotesManager::update_remotes_states()", s);
-            Logger::warning("RemotesManager::update_remotes_states()",
+            Logger::warning("RemotesManager::get_remotes_states()", s);
+            Logger::warning("RemotesManager::get_remotes_states()",
                 "The state of this remote will be re-writted.");
 
             saved_remote.id = this->remotes[i].id;
@@ -236,12 +236,12 @@ void RemotesManager::update_remotes_states()
             EEPROM.commit();
 
             Logger::notice(
-                "RemotesManager::update_remotes_states()", "Remote writted into the memory.");
+                "RemotesManager::get_remotes_states()", "Remote writted into the memory.");
         }
 
         snprintf_P(s, sizeof(s), PSTR("Updating remote '%x' with values from the memory..."),
             this->remotes[i].id);
-        Logger::verbose("RemotesManager::update_remotes_states()", s);
+        Logger::verbose("RemotesManager::get_remotes_states()", s);
 
         // update the current remote with EEPROM values
         this->remotes[i].enabled = saved_remote.enabled;
