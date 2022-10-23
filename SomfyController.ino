@@ -11,6 +11,8 @@
 #include <ESP8266WiFi.h>
 #include <ESP8266WebServer.h>
 #include <uri/UriBraces.h>
+#include <Vector.h>
+#include <Logger.h>
 
 #include "config.h"
 #include "wifi_setup.h"
@@ -35,45 +37,59 @@
 
 ESP8266WebServer web_server(SERVER_PORT);
 
+Remote remotes_array[32];
+static Vector<Remote> remotes(remotes_array);
+
+RemotesManager container(remotes);
+
 // ============================================================================
-// IMPLEMENTATIONS
+// WEBSERVER CALLBACKS
 // ============================================================================
 
 void home_page()
 {
-    Serial.println("INDEX");
+    Logger::notice("home_page()", "Home page requested.");
     web_server.send(200, "text/plain", "Page d'accueil");
-}
+    container.print_remotes();
+};
 
 void blind_up()
 {
-    Serial.println("UP");
+    Logger::notice("blind_up()", "Up command requested.");
     Serial.println(web_server.pathArg(0));
     web_server.send(200, "text/plain", "UP");
-}
+};
 
 void blind_down()
 {
-    Serial.println("DOWN");
+    Logger::notice("blind_down()", "Down command requested.");
     Serial.println(web_server.pathArg(0));
     web_server.send(200, "text/plain", "DOWN");
-}
+};
 
 void blind_stop()
 {
-    Serial.println("STOP");
+    Logger::notice("blind_stop()", "Stop command requested.");
     Serial.println(web_server.pathArg(0));
     web_server.send(200, "text/plain", "STOP");
-}
+};
 
 void blind_prog()
 {
-    Serial.println("PROG");
+    Logger::notice("blind_prog()", "Prog command requested.");
     Serial.println(web_server.pathArg(0));
     web_server.send(200, "text/plain", "PROG");
-}
+};
 
-void not_found_page() { web_server.send(404, "text/plain", "404: Not found"); }
+void not_found_page()
+{
+    Logger::error("not_found_page()", "Page not found.");
+    web_server.send(404, "text/plain", "404: Not found");
+};
+
+// ============================================================================
+// IMPLEMENTATIONS
+// ============================================================================
 
 // ============================================================================
 // ENTRYPOINTS
@@ -84,6 +100,12 @@ void setup()
     Serial.begin(115200);
     while (!Serial)
         continue;
+
+    // Wait one second to avoid bad chars in serial
+    delay(1000);
+
+    // Logger setup
+    Logger::setLogLevel(Logger::VERBOSE);
 
     // WIFI Setup
     setup_wifi(SSID, PASSWORD);
@@ -97,6 +119,20 @@ void setup()
     web_server.onNotFound(not_found_page);
     // Start the web server
     web_server.begin();
-}
 
-void loop() { web_server.handleClient(); }
+    // Load remotes
+    int nb_remotes = sizeof(SOMFY_CONFIG_REMOTES) / sizeof(SOMFY_CONFIG_REMOTES[0]);
+    container.load_remotes(SOMFY_CONFIG_REMOTES, nb_remotes);
+
+    Logger::notice("setup()", "Setup done.");
+
+    // Vector<Remote> remotes = container.get_remotes();
+    // auto salon_remote = remotes[0];
+    // salon_remote.rolling_code += 1;
+    // salon_remote.enabled = true;
+    // container.update_remote(salon_remote);
+    // container.reset_rolling_code(salon_remote.id);
+    // container.toggle_remote_enable(salon_remote);
+};
+
+void loop() { web_server.handleClient(); };
