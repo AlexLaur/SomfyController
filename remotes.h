@@ -43,6 +43,8 @@ public:
     Vector<Remote> get_remotes();
     void update_remote(Remote remote);
 
+    void increment_rolling_code(Remote remote);
+    void increment_rolling_code(unsigned long remote_id);
     void reset_rolling_code(Remote remote);
     void reset_rolling_code(unsigned long remote_id);
 

@@ -136,6 +136,41 @@ void RemotesManager::reset_rolling_code(unsigned long remote_id)
 };
 
 /**
+ * @brief Increment rolling code of the remote.
+ *
+ * @param remote_id
+ */
+void RemotesManager::increment_rolling_code(Remote remote)
+{
+    Logger::verbose(
+        "RemotesManager::increment_rolling_code()", "Incrementing remote rolling code...");
+    remote.rolling_code += 1;
+    this->update(remote);
+    Logger::notice("RemotesManager::increment_rolling_code()", "Rolling code incremented.");
+};
+
+/**
+ * @brief Increment rolling code of the remote.
+ *
+ * @param remote_id
+ */
+void RemotesManager::increment_rolling_code(unsigned long remote_id)
+{
+    Logger::verbose(
+        "RemotesManager::increment_rolling_code()", "Incrementing remote rolling code...");
+    for (Remote remote : this->remotes)
+    {
+        if (remote.id != remote_id)
+        {
+            continue;
+        }
+        remote.rolling_code += 1;
+        this->update(remote);
+    }
+    Logger::notice("RemotesManager::increment_rolling_code()", "Rolling code incremented.");
+};
+
+/**
  * @brief Toggle the state of the remote. If the remote is enabled, it will
  * be disabled. If the toggle is disabled, it will be enabled.
  *
