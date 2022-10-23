@@ -1,0 +1,11 @@
+html {
+    font-family: Arial;
+    display: inline-block;
+    margin: 0px auto;
+    text-align: center;
+}
+
+h1 {
+    color: #070812;
+    padding: 2vh;
+}

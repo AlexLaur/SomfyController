@@ -9,8 +9,14 @@
  *
  */
 #include <ESP8266WiFi.h>
-#include <ESP8266WebServer.h>
-#include <uri/UriBraces.h>
+
+#include <ESPAsyncTCP.h>
+#include <ESPAsyncWebServer.h>
+#include <LittleFS.h>
+
+// #include <ESP8266WebServer.h>
+// #include <uri/UriBraces.h>
+
 #include <Vector.h>
 #include <Logger.h>
 
@@ -35,7 +41,7 @@
 // GLOBAL VARS
 // ============================================================================
 
-ESP8266WebServer web_server(SERVER_PORT);
+AsyncWebServer server(SERVER_PORT);
 
 Remote remotes_array[32];
 static Vector<Remote> remotes(remotes_array);
@@ -46,45 +52,55 @@ RemotesManager container(remotes);
 // WEBSERVER CALLBACKS
 // ============================================================================
 
-void home_page()
+void home_page(AsyncWebServerRequest* request)
 {
     Logger::notice("home_page()", "Home page requested.");
-    web_server.send(200, "text/plain", "Page d'accueil");
+    request->send(LittleFS, "/index.html", String());
     container.print_remotes();
 };
 
-void blind_up()
+void css_file(AsyncWebServerRequest* request)
+{
+    request->send(LittleFS, "/style.css", "text/css");
+};
+
+void blind_up(AsyncWebServerRequest* request)
 {
     Logger::notice("blind_up()", "Up command requested.");
-    Serial.println(web_server.pathArg(0));
-    web_server.send(200, "text/plain", "UP");
+    int nb_params = request->params();
+    for (int i = 0; i < nb_params; i++)
+    {
+        AsyncWebParameter* p = request->getParam(i);
+        Serial.println(p->value());
+    }
+    request->send(200, "text/plain", "UP");
 };
 
-void blind_down()
+void blind_down(AsyncWebServerRequest* request)
 {
     Logger::notice("blind_down()", "Down command requested.");
-    Serial.println(web_server.pathArg(0));
-    web_server.send(200, "text/plain", "DOWN");
+    int nb_params = request->params();
+    request->send(200, "text/plain", "DOWN");
 };
 
-void blind_stop()
+void blind_stop(AsyncWebServerRequest* request)
 {
     Logger::notice("blind_stop()", "Stop command requested.");
-    Serial.println(web_server.pathArg(0));
-    web_server.send(200, "text/plain", "STOP");
+    int nb_params = request->params();
+    request->send(200, "text/plain", "STOP");
 };
 
-void blind_prog()
+void blind_prog(AsyncWebServerRequest* request)
 {
     Logger::notice("blind_prog()", "Prog command requested.");
-    Serial.println(web_server.pathArg(0));
-    web_server.send(200, "text/plain", "PROG");
+    int nb_params = request->params();
+    request->send(200, "text/plain", "PROG");
 };
 
-void not_found_page()
+void not_found_page(AsyncWebServerRequest* request)
 {
     Logger::error("not_found_page()", "Page not found.");
-    web_server.send(404, "text/plain", "404: Not found");
+    request->send(404, "text/plain", "404: The content you are looking for was not found.");
 };
 
 // ============================================================================
@@ -107,24 +123,31 @@ void setup()
     // Logger setup
     Logger::setLogLevel(Logger::VERBOSE);
 
+    // SPIFFS Setup
+    if (!LittleFS.begin())
+    {
+        Logger::error("setup()", "An Error has occurred while mounting SPIFFS.");
+        return;
+    }
+
     // WIFI Setup
     setup_wifi(SSID, PASSWORD);
-
-    // Routes setup
-    web_server.on("/", home_page);
-    web_server.on(UriBraces("/blind/{}/up"), blind_up);
-    web_server.on(UriBraces("/blind/{}/down"), blind_down);
-    web_server.on(UriBraces("/blind/{}/stop"), blind_stop);
-    web_server.on(UriBraces("/blind/{}/prog"), blind_prog);
-    web_server.onNotFound(not_found_page);
-    // Start the web server
-    web_server.begin();
 
     // Load remotes
     int nb_remotes = sizeof(SOMFY_CONFIG_REMOTES) / sizeof(SOMFY_CONFIG_REMOTES[0]);
     container.load_remotes(SOMFY_CONFIG_REMOTES, nb_remotes);
 
-    Logger::notice("setup()", "Setup done.");
+    // Routes setup
+    server.on("/", HTTP_GET, home_page);
+    server.on("/style.css", HTTP_GET, css_file);
+    server.on("/blind/up", HTTP_GET, blind_up);
+    server.on("/blind/down", HTTP_GET, blind_down);
+    server.on("/blind/stop", HTTP_GET, blind_stop);
+    server.on("/blind/prog", HTTP_GET, blind_prog);
+    server.onNotFound(not_found_page);
+
+    // Start the server
+    server.begin();
 
     // Vector<Remote> remotes = container.get_remotes();
     // auto salon_remote = remotes[0];
@@ -133,6 +156,8 @@ void setup()
     // container.update_remote(salon_remote);
     // container.reset_rolling_code(salon_remote.id);
     // container.toggle_remote_enable(salon_remote);
+
+    Logger::notice("setup()", "Setup done.");
 };
 
-void loop() { web_server.handleClient(); };
+void loop() {};
