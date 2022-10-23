@@ -33,6 +33,7 @@ struct RemoteState
 class RemotesManager
 {
     static const unsigned long REMOTE_BASE_ADDRESS;
+    static const unsigned int MAX_REMOTES;
 
 public:
     RemotesManager(Vector<Remote> remotes);
@@ -53,5 +54,5 @@ public:
 private:
     Vector<Remote> remotes;
     void update(Remote remote); // TODO fix the name
-    void update_remotes_from_memory(); // TODO find better name
+    void update_remotes_states();
 };
