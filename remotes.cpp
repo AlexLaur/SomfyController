@@ -16,16 +16,16 @@
 
 #include "remotes.h"
 
-const unsigned long RemotesContainer::REMOTE_BASE_ADDRESS = 0x100000;
+const unsigned long RemotesManager::REMOTE_BASE_ADDRESS = 0x100000;
 
 /**
  * @brief Construct a new Remotes Container:: Remotes Container object
  *
  * @param remotes
  */
-RemotesContainer::RemotesContainer(Vector<Remote> remotes)
+RemotesManager::RemotesManager(Vector<Remote> remotes)
 {
-    Logger::verbose("RemotesContainer::RemotesContainer", "Initialisation of RemotesContainer.");
+    Logger::verbose("RemotesManager::RemotesManager", "Initialisation of RemotesManager.");
     EEPROM.begin(512);
     this->remotes = remotes;
 };
@@ -34,9 +34,9 @@ RemotesContainer::RemotesContainer(Vector<Remote> remotes)
  * @brief Destroy the Remotes Container:: Remotes Container object
  *
  */
-RemotesContainer::~RemotesContainer()
+RemotesManager::~RemotesManager()
 {
-    Logger::verbose("RemotesContainer::~RemotesContainer", "RemotesContainer destroyed.");
+    Logger::verbose("RemotesManager::~RemotesManager", "RemotesManager destroyed.");
     EEPROM.end();
 }
 
@@ -48,9 +48,9 @@ RemotesContainer::~RemotesContainer()
  * @param remote_names
  * @param nb_remotes
  */
-void RemotesContainer::load_remotes(const char* remote_names[], int nb_remotes)
+void RemotesManager::load_remotes(const char* remote_names[], int nb_remotes)
 {
-    Logger::verbose("RemotesContainer::load_remotes()", "Loading all remotes...");
+    Logger::verbose("RemotesManager::load_remotes()", "Loading all remotes...");
     for (int i = 0; i < nb_remotes; i++)
     {
         unsigned long id = this->REMOTE_BASE_ADDRESS + i;
@@ -61,14 +61,14 @@ void RemotesContainer::load_remotes(const char* remote_names[], int nb_remotes)
         this->remotes.push_back({ id, rolling_code, name, enabled, eeprom_address });
     }
     this->update_remotes_from_memory();
-    Logger::notice("RemotesContainer::load_remotes()", "Remotes loaded.");
+    Logger::notice("RemotesManager::load_remotes()", "Remotes loaded.");
 };
 
 /**
  * @brief PrettyPrint for all remotes through the Serial.
  *
  */
-void RemotesContainer::print_remotes()
+void RemotesManager::print_remotes()
 {
     for (Remote remote : this->remotes)
     {
@@ -89,7 +89,7 @@ void RemotesContainer::print_remotes()
  *
  * @return Vector<Remote>
  */
-Vector<Remote> RemotesContainer::get_remotes() { return this->remotes; };
+Vector<Remote> RemotesManager::get_remotes() { return this->remotes; };
 
 /**
  * @brief Update the remote inside the Vector and inside the memory if the
@@ -97,7 +97,7 @@ Vector<Remote> RemotesContainer::get_remotes() { return this->remotes; };
  *
  * @param remote
  */
-void RemotesContainer::update_remote(Remote remote) { this->update(remote); };
+void RemotesManager::update_remote(Remote remote) { this->update(remote); };
 
 /**
  * @brief Reset the rolling code of the given remote. It will update this into
@@ -105,12 +105,12 @@ void RemotesContainer::update_remote(Remote remote) { this->update(remote); };
  *
  * @param remote
  */
-void RemotesContainer::reset_rolling_code(Remote remote)
+void RemotesManager::reset_rolling_code(Remote remote)
 {
-    Logger::verbose("RemotesContainer::reset_rolling_code()", "Reseting remote rolling code...");
+    Logger::verbose("RemotesManager::reset_rolling_code()", "Reseting remote rolling code...");
     remote.rolling_code = 0;
     this->update(remote);
-    Logger::notice("RemotesContainer::reset_rolling_code()", "Reset rolling code done.");
+    Logger::notice("RemotesManager::reset_rolling_code()", "Reset rolling code done.");
 };
 
 /**
@@ -119,9 +119,9 @@ void RemotesContainer::reset_rolling_code(Remote remote)
  *
  * @param remote_id
  */
-void RemotesContainer::reset_rolling_code(unsigned long remote_id)
+void RemotesManager::reset_rolling_code(unsigned long remote_id)
 {
-    Logger::verbose("RemotesContainer::reset_rolling_code()", "Reseting remote rolling code...");
+    Logger::verbose("RemotesManager::reset_rolling_code()", "Reseting remote rolling code...");
     for (Remote remote : this->remotes)
     {
         if (remote.id != remote_id)
@@ -131,7 +131,7 @@ void RemotesContainer::reset_rolling_code(unsigned long remote_id)
         remote.rolling_code = 0;
         this->update(remote);
     }
-    Logger::notice("RemotesContainer::reset_rolling_code()", "Reset rolling code done.");
+    Logger::notice("RemotesManager::reset_rolling_code()", "Reset rolling code done.");
 };
 
 /**
@@ -140,9 +140,9 @@ void RemotesContainer::reset_rolling_code(unsigned long remote_id)
  *
  * @param remote
  */
-void RemotesContainer::toggle_remote_enable(Remote remote)
+void RemotesManager::toggle_remote_enable(Remote remote)
 {
-    Logger::verbose("RemotesContainer::toggle_remote_enable()", "Toggleing remote enabled field.");
+    Logger::verbose("RemotesManager::toggle_remote_enable()", "Toggleing remote enabled field.");
     for (Remote current_remote : this->remotes)
     {
         if (remote.id != current_remote.id)
@@ -152,7 +152,7 @@ void RemotesContainer::toggle_remote_enable(Remote remote)
         current_remote.enabled = !current_remote.enabled;
         this->update(current_remote);
     }
-    Logger::notice("RemotesContainer::toggle_remote_enable()", "Toggle remote enabled field done.");
+    Logger::notice("RemotesManager::toggle_remote_enable()", "Toggle remote enabled field done.");
 };
 
 /**
@@ -161,9 +161,9 @@ void RemotesContainer::toggle_remote_enable(Remote remote)
  *
  * @param remote_id
  */
-void RemotesContainer::toggle_remote_enable(unsigned long remote_id)
+void RemotesManager::toggle_remote_enable(unsigned long remote_id)
 {
-    Logger::verbose("RemotesContainer::toggle_remote_enable()", "Toggleing remote enabled field.");
+    Logger::verbose("RemotesManager::toggle_remote_enable()", "Toggleing remote enabled field.");
     for (Remote remote : this->remotes)
     {
         if (remote.id != remote_id)
@@ -173,16 +173,16 @@ void RemotesContainer::toggle_remote_enable(unsigned long remote_id)
         remote.enabled = !remote.enabled;
         this->update(remote);
     }
-    Logger::notice("RemotesContainer::toggle_remote_enable()", "Toggle remote enabled field done.");
+    Logger::notice("RemotesManager::toggle_remote_enable()", "Toggle remote enabled field done.");
 };
 
 // PRIVATE
 
-void RemotesContainer::update(Remote remote)
+void RemotesManager::update(Remote remote)
 {
     char s[32]; // used for logger messages
     snprintf_P(s, sizeof(s), PSTR("Updating the remote: %x"), remote.id);
-    Logger::notice("RemotesContainer::update()", s);
+    Logger::notice("RemotesManager::update()", s);
 
     for (unsigned int i = 0; i < this->remotes.size(); i++)
     {
@@ -198,19 +198,19 @@ void RemotesContainer::update(Remote remote)
         EEPROM.put(this->remotes[i].eeprom_address, this->remotes[i]);
         EEPROM.commit();
 
-        Logger::notice("RemotesContainer::update()", "Remote updated.");
+        Logger::notice("RemotesManager::update()", "Remote updated.");
         return;
     }
 
     snprintf_P(s, sizeof(s), PSTR("No remote found with id %x."), remote.id);
-    Logger::warning("RemotesContainer::update()", s);
-    Logger::warning("RemotesContainer::update()", "Nothing has been updated.");
+    Logger::warning("RemotesManager::update()", s);
+    Logger::warning("RemotesManager::update()", "Nothing has been updated.");
 };
 
-void RemotesContainer::update_remotes_from_memory()
+void RemotesManager::update_remotes_from_memory()
 {
     char s[64]; // used for logger messages
-    Logger::verbose("RemotesContainer::update_remotes_from_memory()",
+    Logger::verbose("RemotesManager::update_remotes_from_memory()",
         "Update all remotes with values stored in the memory.");
 
     for (unsigned int i = 0; i < this->remotes.size(); i++)
@@ -222,20 +222,20 @@ void RemotesContainer::update_remotes_from_memory()
         {
             snprintf_P(s, sizeof(s), PSTR("Remote '%s' at '%x' seems to be corrupted."),
                 this->remotes[i].name, this->remotes[i].id);
-            Logger::warning("RemotesContainer::update_remotes_from_memory()", s);
-            Logger::warning("RemotesContainer::update_remotes_from_memory()",
+            Logger::warning("RemotesManager::update_remotes_from_memory()", s);
+            Logger::warning("RemotesManager::update_remotes_from_memory()",
                 "The state of this remote will be re-writted.");
 
             EEPROM.put(this->remotes[i].eeprom_address, this->remotes[i]);
             EEPROM.commit();
 
-            Logger::notice("RemotesContainer::update_remotes_from_memory()",
+            Logger::notice("RemotesManager::update_remotes_from_memory()",
                 "Remote writted into the memory.");
         }
 
         snprintf_P(s, sizeof(s), PSTR("Updating remote '%x' with values from the memory..."),
             this->remotes[i].id);
-        Logger::verbose("RemotesContainer::update_remotes_from_memory()", s);
+        Logger::verbose("RemotesManager::update_remotes_from_memory()", s);
 
         // update the current remote with EEPROM values
         this->remotes[i].name = saved_remote.name;

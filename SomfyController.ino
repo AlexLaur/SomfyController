@@ -40,7 +40,7 @@ ESP8266WebServer web_server(SERVER_PORT);
 Remote remotes_array[32];
 static Vector<Remote> remotes(remotes_array);
 
-RemotesContainer container(remotes);
+RemotesManager container(remotes);
 
 // ============================================================================
 // WEBSERVER CALLBACKS

@@ -11,13 +11,13 @@ struct Remote
     unsigned short eeprom_address;
 };
 
-class RemotesContainer
+class RemotesManager
 {
     static const unsigned long REMOTE_BASE_ADDRESS;
 
 public:
-    RemotesContainer(Vector<Remote> remotes);
-    ~RemotesContainer();
+    RemotesManager(Vector<Remote> remotes);
+    ~RemotesManager();
     void load_remotes(const char* remote_names[], int nb_remotes);
 
     Vector<Remote> get_remotes();
