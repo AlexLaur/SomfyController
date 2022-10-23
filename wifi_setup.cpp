@@ -24,7 +24,6 @@ void setup_wifi(const char* ssid, const char* password)
     Serial.println("connected.");
 
     IPAddress ip = WiFi.localIP();
-    snprintf_P(s, sizeof(s), PSTR("IP address: %d.%d.%d.%d"), ip[0], ip[1],
-        ip[2], ip[3]);
+    snprintf_P(s, sizeof(s), PSTR("IP address: %d.%d.%d.%d"), ip[0], ip[1], ip[2], ip[3]);
     Logger::notice("setup_wifi()", s);
 };

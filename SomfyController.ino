@@ -121,8 +121,7 @@ void setup()
     web_server.begin();
 
     // Load remotes
-    int nb_remotes
-        = sizeof(SOMFY_CONFIG_REMOTES) / sizeof(SOMFY_CONFIG_REMOTES[0]);
+    int nb_remotes = sizeof(SOMFY_CONFIG_REMOTES) / sizeof(SOMFY_CONFIG_REMOTES[0]);
     container.load_remotes(SOMFY_CONFIG_REMOTES, nb_remotes);
 
     Logger::notice("setup()", "Setup done.");
