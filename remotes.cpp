@@ -57,7 +57,7 @@ void RemotesManager::load_remotes(const char* remote_names[], int nb_remotes)
         unsigned int rolling_code = 0;
         char* name = (char*)remote_names[i];
         bool enabled = false;
-        unsigned short eeprom_address = i * sizeof(Remote);
+        unsigned short eeprom_address = i * sizeof(RemoteState);
         this->remotes.push_back({ id, rolling_code, name, enabled, eeprom_address });
     }
     this->update_remotes_from_memory();
@@ -190,12 +190,13 @@ void RemotesManager::update(Remote remote)
         {
             continue;
         }
-
-        this->remotes[i].name = remote.name;
         this->remotes[i].rolling_code = remote.rolling_code;
         this->remotes[i].enabled = remote.enabled;
 
-        EEPROM.put(this->remotes[i].eeprom_address, this->remotes[i]);
+        RemoteState remote_state
+            = { this->remotes[i].id, this->remotes[i].rolling_code, this->remotes[i].enabled };
+
+        EEPROM.put(this->remotes[i].eeprom_address, remote_state);
         EEPROM.commit();
 
         Logger::notice("RemotesManager::update()", "Remote updated.");
@@ -215,7 +216,7 @@ void RemotesManager::update_remotes_from_memory()
 
     for (unsigned int i = 0; i < this->remotes.size(); i++)
     {
-        Remote saved_remote;
+        RemoteState saved_remote;
         EEPROM.get(this->remotes[i].eeprom_address, saved_remote);
 
         if (this->remotes[i].id != saved_remote.id)
@@ -226,11 +227,15 @@ void RemotesManager::update_remotes_from_memory()
             Logger::warning("RemotesManager::update_remotes_from_memory()",
                 "The state of this remote will be re-writted.");
 
-            EEPROM.put(this->remotes[i].eeprom_address, this->remotes[i]);
+            saved_remote.id = this->remotes[i].id;
+            saved_remote.enabled = this->remotes[i].enabled;
+            saved_remote.rolling_code = this->remotes[i].rolling_code;
+
+            EEPROM.put(this->remotes[i].eeprom_address, saved_remote);
             EEPROM.commit();
 
-            Logger::notice("RemotesManager::update_remotes_from_memory()",
-                "Remote writted into the memory.");
+            Logger::notice(
+                "RemotesManager::update_remotes_from_memory()", "Remote writted into the memory.");
         }
 
         snprintf_P(s, sizeof(s), PSTR("Updating remote '%x' with values from the memory..."),
@@ -238,7 +243,6 @@ void RemotesManager::update_remotes_from_memory()
         Logger::verbose("RemotesManager::update_remotes_from_memory()", s);
 
         // update the current remote with EEPROM values
-        this->remotes[i].name = saved_remote.name;
         this->remotes[i].enabled = saved_remote.enabled;
         this->remotes[i].rolling_code = saved_remote.rolling_code;
     }

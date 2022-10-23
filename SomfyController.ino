@@ -126,9 +126,10 @@ void setup()
 
     Logger::notice("setup()", "Setup done.");
 
-    Vector<Remote> remotes = container.get_remotes();
-    auto salon_remote = remotes[0];
+    // Vector<Remote> remotes = container.get_remotes();
+    // auto salon_remote = remotes[0];
     // salon_remote.rolling_code += 1;
+    // salon_remote.enabled = true;
     // container.update_remote(salon_remote);
     // container.reset_rolling_code(salon_remote.id);
     // container.toggle_remote_enable(salon_remote);
