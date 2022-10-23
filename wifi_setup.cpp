@@ -1,4 +1,5 @@
 #include <ESP8266WiFi.h>
+#include <Logger.h>
 
 #include "wifi_setup.h"
 
@@ -8,11 +9,11 @@
  * @param ssid
  * @param password
  */
-void setup_wifi(const char *ssid, const char *password)
+void setup_wifi(const char* ssid, const char* password)
 {
-    Serial.println();
-    Serial.print("Connecting to ");
-    Serial.println(ssid);
+    char s[32]; // used for logger messages
+    snprintf_P(s, sizeof(s), PSTR("Connecting to: %s"), ssid);
+    Logger::notice("setup_wifi()", s);
 
     WiFi.begin(ssid, password);
     while (WiFi.status() != WL_CONNECTED)
@@ -21,7 +22,9 @@ void setup_wifi(const char *ssid, const char *password)
         Serial.print(".");
     }
     Serial.println("connected.");
-    Serial.print("IP address: ");
-    Serial.println(WiFi.localIP());
-    Serial.println("-----------------------");
+
+    IPAddress ip = WiFi.localIP();
+    snprintf_P(s, sizeof(s), PSTR("IP address: %d.%d.%d.%d"), ip[0], ip[1],
+        ip[2], ip[3]);
+    Logger::notice("setup_wifi()", s);
 };
