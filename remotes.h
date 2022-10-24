@@ -57,6 +57,7 @@ class RemotesManager
   void load_remotes(const char* remote_names[], int nb_remotes);
 
   Vector<Remote> get_remotes();
+  Remote* get_remote(unsigned long remote_id);
   void update_remote(Remote remote);
 
   void increment_rolling_code(Remote remote);
