@@ -9,6 +9,99 @@
 
 <body>
     <h2>Somfy Blinds Controller</h2>
+    <table class="styled-table">
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>Name</th>
+                <th>Rolling Code</th>
+                <th>Enabled</th>
+                <th>Commands</th>
+            </tr>
+        </thead>
+        <tbody id="tableBody"></tbody>
+    </table>
+
+    <script>
+
+        window.addEventListener("load", function () {
+
+            const table = document.getElementById("tableBody");
+
+            fetch("/remotes").then(function (response) {
+                if (response.ok) {
+                    const data = JSON.parse(reponse.json());
+                    console.log(data);
+
+                    data.map(remote => {
+                        let row = table.insertRow();
+
+                        let id = row.insertCell(0);
+                        id.innerHTML = remote.id;
+                        let name = row.insertCell(1);
+                        name.innerHTML = remote.name;
+                        let rolling_code = row.insertCell(2);
+                        rolling_code.innerHTML = remote.rolling_code;
+                        let enabled = row.insertCell(3);
+                        enabled.innerHTML = remote.enabled;
+
+                        let commands = row.insertCell(4);
+
+                        let btn_up = document.createElement("button");
+                        btn_up.innerHTML = "UP";
+                        btn_up.type = "submit";
+                        btn_up.name = "up";
+                        btn_up.addEventListener("click", function () {
+                            onUpRequested(remote.id);
+                        });
+                        commands.appendChild(btn_up);
+
+                        let btn_down = document.createElement("button");
+                        btn_down.innerHTML = "DOWN";
+                        btn_down.type = "submit";
+                        btn_down.name = "down";
+                        btn_down.addEventListener("click", function () {
+                            onDownRequested(remote.id);
+                        });
+                        commands.appendChild(btn_down);
+
+                        let btn_stop = document.createElement("button");
+                        btn_stop.innerHTML = "STOP";
+                        btn_stop.type = "submit";
+                        btn_stop.name = "stop";
+                        btn_stop.addEventListener("click", function () {
+                            onStopRequested(remote.id);
+                        });
+                        commands.appendChild(btn_stop);
+                    });
+
+                } else {
+                    console.log('Bad response.');
+                }
+            });
+        });
+
+        function onUpRequested(remote_id) {
+            console.log(remote_id);
+            request(remote_id, "up");
+        };
+
+        function onDownRequested(remote_id) {
+            console.log(remote_id);
+            request(remote_id, "down");
+        };
+
+        function onStopRequested(remote_id) {
+            console.log(remote_id);
+            request(remote_id, "stop");
+        };
+
+        function request(remote_id, action) {
+            const url = "/blind?remote_id=" + remote_id + "&action=" + action;
+            fetch(url).then(data => { return data.json() }).then(res => { console.log(res) });
+        }
+
+    </script>
 </body>
 
 </html>

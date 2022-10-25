@@ -55,7 +55,6 @@ void home_page(AsyncWebServerRequest* request)
 {
   Logger::notice("home_page()", "Home page requested.");
   request->send(LittleFS, "/index.html", String());
-  manager.print_remotes();
 };
 
 void css_file(AsyncWebServerRequest* request)
@@ -72,9 +71,8 @@ void get_remotes(AsyncWebServerRequest* request)
 
 void blind_command(AsyncWebServerRequest* request)
 {
-  int remote_index = -1;
+  int remote_id = -1;
   int action = REMOTES_ACTIONS::UNKNOWN;
-  auto remotes = manager.get_remotes();
 
   for (unsigned int i = 0; i < request->params(); i++)
   {
@@ -115,10 +113,10 @@ void blind_command(AsyncWebServerRequest* request)
         action = REMOTES_ACTIONS::UNKNOWN;
       }
     }
-    else if (p_param->name() == "remote_index")
+    else if (p_param->name() == "remote_id")
     {
-      String str_remote_index = p_param->value();
-      remote_index = str_remote_index.toInt();
+      String str_remote_id = p_param->value();
+      remote_id = str_remote_id.toInt();
     }
     else
     {
@@ -126,15 +124,9 @@ void blind_command(AsyncWebServerRequest* request)
     }
   }
 
-  if (remote_index < 0)
+  if (remote_id < 0)
   {
     Logger::error("blind_command()", "Bad remote index.");
-    request->send(400);
-    return;
-  }
-  else if (remote_index > remotes.size())
-  {
-    Logger::error("blind_command()", "Remote doesn't exists.");
     request->send(400);
     return;
   }
@@ -147,8 +139,15 @@ void blind_command(AsyncWebServerRequest* request)
   else
   {
     // All is valid, get remote.
-    Remote remote = remotes[remote_index];
-    if (!remote.enabled)
+    Remote* remote = manager.get_remote(remote_id);
+
+    if (!remote){
+      Logger::error("blind_command()", "No remote found for the given id.");
+      request->send(400);
+      return;
+    }
+
+    if (!remote->enabled)
     {
       Logger::error("blind_command()", "Remote is not enabled.");
       request->send(400);
@@ -156,25 +155,25 @@ void blind_command(AsyncWebServerRequest* request)
     }
 
     if (action == REMOTES_ACTIONS::RESET){
-      manager.reset_rolling_code(remote);
+      manager.reset_rolling_code(remote->id);
       request->send(200);
       return;
     }
 
     if (action == REMOTES_ACTIONS::ENABLE || action == REMOTES_ACTIONS::DISABLE){
-      manager.toggle_remote_enable(remote);
+      manager.toggle_remote_enable(remote->id);
       request->send(200);
       return;
     }
 
     // We can send the command now!
-    buildFrame(remote.id, remote.rolling_code, frame, action);
+    buildFrame(remote->id, remote->rolling_code, frame, action);
     sendCommand(frame, 2);
     for (int i = 0; i < 2; i++)
     {
       sendCommand(frame, 7);
     }
-    manager.increment_rolling_code(remote);
+    manager.increment_rolling_code(remote->id);
   }
   request->send(200);
 };
