@@ -3,7 +3,7 @@ import os
 
 
 SCRIPT_PATH = os.path.dirname(__file__)
-BUILD_PATH = os.path.join(SCRIPT_PATH, "data")
+BUILD_PATH = os.path.join(os.path.dirname(SCRIPT_PATH), "data")  # ../data
 
 
 class Renamer(object):
