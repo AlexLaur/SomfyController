@@ -59,7 +59,12 @@ void home_page(AsyncWebServerRequest* request)
 
 void css_file(AsyncWebServerRequest* request)
 {
-  request->send(LittleFS, "/style.css", "text/css");
+  request->send(LittleFS, "/static/css/main.css", "text/css");
+};
+
+void js_file(AsyncWebServerRequest* request)
+{
+  request->send(LittleFS, "/static/js/main.js", "text/javascript");
 };
 
 void get_remotes(AsyncWebServerRequest* request)
@@ -147,6 +152,12 @@ void blind_command(AsyncWebServerRequest* request)
       return;
     }
 
+    if (action == REMOTES_ACTIONS::ENABLE || action == REMOTES_ACTIONS::DISABLE){
+      manager.toggle_remote_enable(remote->id);
+      request->send(200);
+      return;
+    }
+
     if (!remote->enabled)
     {
       Logger::error("blind_command()", "Remote is not enabled.");
@@ -156,12 +167,6 @@ void blind_command(AsyncWebServerRequest* request)
 
     if (action == REMOTES_ACTIONS::RESET){
       manager.reset_rolling_code(remote->id);
-      request->send(200);
-      return;
-    }
-
-    if (action == REMOTES_ACTIONS::ENABLE || action == REMOTES_ACTIONS::DISABLE){
-      manager.toggle_remote_enable(remote->id);
       request->send(200);
       return;
     }
@@ -360,7 +365,9 @@ void setup()
 
   // Routes setup
   server.on("/", HTTP_GET, home_page);
-  server.on("/style.css", HTTP_GET, css_file);
+  server.on("/static/css/main.css", HTTP_GET, css_file);
+  server.on("/static/js/main.js", HTTP_GET, js_file);
+
   server.on("/blind", HTTP_GET, blind_command);
   server.on("/remotes", HTTP_GET, get_remotes);
   server.onNotFound(not_found_page);
