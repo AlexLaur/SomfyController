@@ -7,11 +7,6 @@ import RemoteRow from "./RemoteRow";
 const RemotesSection = () => {
   const [remotes, setRemotes] = useState<any[]>([]);
 
-  var elements = [{"id":1048576,"name":"Chambre parentale","rolling_code":0,"enabled":true},{"id":1048577,"name":"Chambre d'ami","rolling_code":0,"enabled":true},{"id":1048578,"name":"Remote 02","rolling_code":0,"enabled":false},{"id":1048579,"name":"Remote 03","rolling_code":0,"enabled":false},{"id":1048580,"name":"Remote 04","rolling_code":0,"enabled":false}];
-  var rows = elements.map((remote) => (
-    <RemoteRow remote={remote} key={remote.id} />
-  ));
-
   useEffect(() => {
     async function fetchRemotes() {
       try {
@@ -44,7 +39,6 @@ const RemotesSection = () => {
                 {remotes?.map((remote) => (
                   <RemoteRow remote={remote} key={remote.id} />
                 ))}
-                {rows}
               </tbody>
             </Table>
           </Grid.Col>
