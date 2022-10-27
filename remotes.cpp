@@ -92,6 +92,19 @@ void RemotesManager::print_remotes()
  */
 Vector<Remote> RemotesManager::get_remotes() { return this->remotes; };
 
+Remote* RemotesManager::get_remote(unsigned long remote_id){
+    for (unsigned int i = 0; i < this->remotes.size(); i++)
+    {
+        if (this->remotes[i].id != remote_id)
+        {
+            continue;
+        }
+        Remote *p_remote = &this->remotes[i];
+        return p_remote;
+    }
+    return NULL;
+}
+
 /**
  * @brief Update the remote inside the Vector and inside the memory if the
  * remote.id exists in the container.

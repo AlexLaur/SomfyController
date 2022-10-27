@@ -9,14 +9,16 @@
  *
  */
 #include <ESP8266WiFi.h>
-#include <ESP8266WebServer.h>
-#include <uri/UriBraces.h>
+#include <ESPAsyncTCP.h>
+#include <ESPAsyncWebServer.h>
+#include <LittleFS.h>
 #include <Vector.h>
 #include <Logger.h>
 
 #include "config.h"
 #include "wifi_setup.h"
 #include "remotes.h"
+#include "serializer.h"
 
 #define PORT_TX D1
 
@@ -35,61 +37,296 @@
 // GLOBAL VARS
 // ============================================================================
 
-ESP8266WebServer web_server(SERVER_PORT);
+AsyncWebServer server(SERVER_PORT);
 
 Remote remotes_array[32];
 static Vector<Remote> remotes(remotes_array);
 
-RemotesManager container(remotes);
+RemotesManager manager(remotes);
+
+byte frame[7];
+byte checksum;
 
 // ============================================================================
 // WEBSERVER CALLBACKS
 // ============================================================================
 
-void home_page()
+void home_page(AsyncWebServerRequest* request)
 {
-    Logger::notice("home_page()", "Home page requested.");
-    web_server.send(200, "text/plain", "Page d'accueil");
-    container.print_remotes();
+  Logger::notice("home_page()", "Home page requested.");
+  request->send(LittleFS, "/index.html", String());
 };
 
-void blind_up()
+void css_file(AsyncWebServerRequest* request)
 {
-    Logger::notice("blind_up()", "Up command requested.");
-    Serial.println(web_server.pathArg(0));
-    web_server.send(200, "text/plain", "UP");
+  request->send(LittleFS, "/static/css/main.css", "text/css");
 };
 
-void blind_down()
+void js_file(AsyncWebServerRequest* request)
 {
-    Logger::notice("blind_down()", "Down command requested.");
-    Serial.println(web_server.pathArg(0));
-    web_server.send(200, "text/plain", "DOWN");
+  request->send(LittleFS, "/static/js/main.js", "text/javascript");
 };
 
-void blind_stop()
+void get_remotes(AsyncWebServerRequest* request)
 {
-    Logger::notice("blind_stop()", "Stop command requested.");
-    Serial.println(web_server.pathArg(0));
-    web_server.send(200, "text/plain", "STOP");
+  Vector<Remote> all_remotes = manager.get_remotes();
+  String content = Serializer::serialize(all_remotes);
+  request->send(200, "application/json", content);
 };
 
-void blind_prog()
+void blind_command(AsyncWebServerRequest* request)
 {
-    Logger::notice("blind_prog()", "Prog command requested.");
-    Serial.println(web_server.pathArg(0));
-    web_server.send(200, "text/plain", "PROG");
+  int remote_id = -1;
+  int action = REMOTES_ACTIONS::UNKNOWN;
+
+  for (unsigned int i = 0; i < request->params(); i++)
+  {
+    AsyncWebParameter* p_param = request->getParam(i);
+    if (p_param->name() == "action")
+    {
+      String str_action = p_param->value();
+      if (str_action == "up")
+      {
+        action = REMOTES_ACTIONS::UP;
+      }
+      else if (str_action == "down")
+      {
+        action = REMOTES_ACTIONS::DOWN;
+      }
+      else if (str_action == "stop")
+      {
+        action = REMOTES_ACTIONS::STOP;
+      }
+      else if (str_action == "prog")
+      {
+        action = REMOTES_ACTIONS::PROG;
+      }
+      else if (str_action == "reset")
+      {
+        action = REMOTES_ACTIONS::RESET;
+      }
+      else if (str_action == "enable")
+      {
+        action = REMOTES_ACTIONS::ENABLE;
+      }
+      else if (str_action == "disable")
+      {
+        action = REMOTES_ACTIONS::DISABLE;
+      }
+      else
+      {
+        action = REMOTES_ACTIONS::UNKNOWN;
+      }
+    }
+    else if (p_param->name() == "remote_id")
+    {
+      String str_remote_id = p_param->value();
+      remote_id = str_remote_id.toInt();
+    }
+    else
+    {
+      Logger::warning("blind_command()", "Unknown param.");
+    }
+  }
+
+  if (remote_id < 0)
+  {
+    Logger::error("blind_command()", "Bad remote index.");
+    request->send(400);
+    return;
+  }
+  else if (action == REMOTES_ACTIONS::UNKNOWN)
+  {
+    Logger::error("blind_command()", "Unknown action.");
+    request->send(400);
+    return;
+  }
+  else
+  {
+    // All is valid, get remote.
+    Remote* remote = manager.get_remote(remote_id);
+
+    if (!remote){
+      Logger::error("blind_command()", "No remote found for the given id.");
+      request->send(400);
+      return;
+    }
+
+    if (action == REMOTES_ACTIONS::ENABLE || action == REMOTES_ACTIONS::DISABLE){
+      manager.toggle_remote_enable(remote->id);
+      request->send(200);
+      return;
+    }
+
+    if (!remote->enabled)
+    {
+      Logger::error("blind_command()", "Remote is not enabled.");
+      request->send(400);
+      return;
+    }
+
+    if (action == REMOTES_ACTIONS::RESET){
+      manager.reset_rolling_code(remote->id);
+      request->send(200);
+      return;
+    }
+
+    // We can send the command now!
+    buildFrame(remote->id, remote->rolling_code, frame, action);
+    sendCommand(frame, 2);
+    for (int i = 0; i < 2; i++)
+    {
+      sendCommand(frame, 7);
+    }
+    manager.increment_rolling_code(remote->id);
+  }
+  request->send(200);
 };
 
-void not_found_page()
+void not_found_page(AsyncWebServerRequest* request)
 {
-    Logger::error("not_found_page()", "Page not found.");
-    web_server.send(404, "text/plain", "404: Not found");
+  Logger::error("not_found_page()", "Page not found.");
+  request->send(404, "text/plain", "404: The content you are looking for was not found.");
 };
 
 // ============================================================================
 // IMPLEMENTATIONS
 // ============================================================================
+
+void buildFrame(unsigned long remote_id, unsigned int rolling_code, byte* frame, int action)
+{
+  byte button;
+  switch (action)
+  {
+  case REMOTES_ACTIONS::UP:
+    button = BYTE_ACTION_UP;
+    break;
+  case REMOTES_ACTIONS::DOWN:
+    button = BYTE_ACTION_DOWN;
+    break;
+  case REMOTES_ACTIONS::STOP:
+    button = BYTE_ACTION_STOP;
+    break;
+  case REMOTES_ACTIONS::PROG:
+    button = BYTE_ACTION_PROG;
+    break;
+  default:
+    // Stop by default
+    button = BYTE_ACTION_STOP;
+    break;
+  }
+
+  frame[0] = 0xA7;
+  frame[1] = button << 4;
+  frame[2] = rolling_code >> 8;
+  frame[3] = rolling_code;
+  frame[4] = remote_id >> 16;
+  frame[5] = remote_id >> 8;
+  frame[6] = remote_id;
+
+  Serial.print("Frame         : ");
+  for (byte i = 0; i < 7; i++)
+  {
+    if (frame[i] >> 4 == 0)
+    {
+      Serial.print("0");
+    }
+    Serial.print(frame[i], HEX);
+    Serial.print(" ");
+  }
+
+  byte checksum = 0;
+  for (byte i = 0; i < 7; i++)
+  {
+    checksum = checksum ^ frame[i] ^ (frame[i] >> 4);
+  }
+  checksum &= 0b1111;
+
+  frame[1] |= checksum;
+
+  Serial.println("");
+  Serial.print("Avec checksum : ");
+  for (byte i = 0; i < 7; i++)
+  {
+    if (frame[i] >> 4 == 0)
+    {
+      Serial.print("0");
+    }
+    Serial.print(frame[i], HEX);
+    Serial.print(" ");
+  }
+
+  for (byte i = 1; i < 7; i++)
+  {
+    frame[i] ^= frame[i - 1];
+  }
+
+  Serial.println("");
+  Serial.print("Obfuscation    : ");
+  for (byte i = 0; i < 7; i++)
+  {
+    if (frame[i] >> 4 == 0)
+    {
+      Serial.print("0");
+    }
+    Serial.print(frame[i], HEX);
+    Serial.print(" ");
+  }
+  Serial.println("");
+  Serial.print("Compteur  : ");
+  Serial.println(rolling_code);
+};
+
+void sendCommand(byte* frame, byte sync)
+{
+  if (sync == 2)
+  {
+    // Only with the first frame.
+    // Wake-up pulse & Silence
+    SIG_HIGH;
+    delayMicroseconds(9415);
+    SIG_LOW;
+    delayMicroseconds(89565);
+  }
+
+  // Hardware sync: two sync for the first frame, seven for the following
+  // ones.
+  for (int i = 0; i < sync; i++)
+  {
+    SIG_HIGH;
+    delayMicroseconds(4 * SYMBOL);
+    SIG_LOW;
+    delayMicroseconds(4 * SYMBOL);
+  }
+
+  // Software sync
+  SIG_HIGH;
+  delayMicroseconds(4550);
+  SIG_LOW;
+  delayMicroseconds(SYMBOL);
+
+  // Data: bits are sent one by one, starting with the MSB.
+  for (byte i = 0; i < 56; i++)
+  {
+    if (((frame[i / 8] >> (7 - (i % 8))) & 1) == 1)
+    {
+      SIG_LOW;
+      delayMicroseconds(SYMBOL);
+      SIG_HIGH;
+      delayMicroseconds(SYMBOL);
+    }
+    else
+    {
+      SIG_HIGH;
+      delayMicroseconds(SYMBOL);
+      SIG_LOW;
+      delayMicroseconds(SYMBOL);
+    }
+  }
+
+  SIG_LOW;
+  delayMicroseconds(30415); // Inter-frame silence
+};
 
 // ============================================================================
 // ENTRYPOINTS
@@ -97,42 +334,56 @@ void not_found_page()
 
 void setup()
 {
-    Serial.begin(115200);
-    while (!Serial)
-        continue;
+  Serial.begin(115200);
+  while (!Serial)
+    continue;
 
-    // Wait one second to avoid bad chars in serial
-    delay(1000);
+  // Wait one second to avoid bad chars in serial
+  delay(1000);
 
-    // Logger setup
-    Logger::setLogLevel(Logger::VERBOSE);
+  // Logger setup
+  Logger::setLogLevel(Logger::VERBOSE);
 
-    // WIFI Setup
-    setup_wifi(SSID, PASSWORD);
+  // Open the output for 433.42MHz and 433.92MHz transmitter
+  pinMode(PORT_TX, OUTPUT);
+  SIG_LOW;
+  digitalWrite(PORT_TX, LOW);
 
-    // Routes setup
-    web_server.on("/", home_page);
-    web_server.on(UriBraces("/blind/{}/up"), blind_up);
-    web_server.on(UriBraces("/blind/{}/down"), blind_down);
-    web_server.on(UriBraces("/blind/{}/stop"), blind_stop);
-    web_server.on(UriBraces("/blind/{}/prog"), blind_prog);
-    web_server.onNotFound(not_found_page);
-    // Start the web server
-    web_server.begin();
+  // SPIFFS Setup
+  if (!LittleFS.begin())
+  {
+    Logger::error("setup()", "An Error has occurred while mounting SPIFFS.");
+    return;
+  }
 
-    // Load remotes
-    int nb_remotes = sizeof(SOMFY_CONFIG_REMOTES) / sizeof(SOMFY_CONFIG_REMOTES[0]);
-    container.load_remotes(SOMFY_CONFIG_REMOTES, nb_remotes);
+  // WIFI Setup
+  setup_wifi(SSID, PASSWORD);
 
-    Logger::notice("setup()", "Setup done.");
+  // Load remotes
+  int nb_remotes = sizeof(SOMFY_CONFIG_REMOTES) / sizeof(SOMFY_CONFIG_REMOTES[0]);
+  manager.load_remotes(SOMFY_CONFIG_REMOTES, nb_remotes);
 
-    // Vector<Remote> remotes = container.get_remotes();
-    // auto salon_remote = remotes[0];
-    // salon_remote.rolling_code += 1;
-    // salon_remote.enabled = true;
-    // container.update_remote(salon_remote);
-    // container.reset_rolling_code(salon_remote.id);
-    // container.toggle_remote_enable(salon_remote);
+  // Routes setup
+  server.on("/", HTTP_GET, home_page);
+  server.on("/static/css/main.css", HTTP_GET, css_file);
+  server.on("/static/js/main.js", HTTP_GET, js_file);
+
+  server.on("/blind", HTTP_GET, blind_command);
+  server.on("/remotes", HTTP_GET, get_remotes);
+  server.onNotFound(not_found_page);
+
+  // Start the server
+  server.begin();
+
+  // Vector<Remote> remotes = manager.get_remotes();
+  // auto salon_remote = remotes[0];
+  // salon_remote.rolling_code += 1;
+  // salon_remote.enabled = true;
+  // manager.update_remote(salon_remote);
+  // manager.reset_rolling_code(salon_remote.id);
+  // manager.toggle_remote_enable(salon_remote);
+
+  Logger::notice("setup()", "Setup done.");
 };
 
-void loop() { web_server.handleClient(); };
+void loop() {};
