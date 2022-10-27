@@ -1,3 +1,13 @@
+/**
+ * @file Remotes.h
+ * @author Laurette Alexandre
+ * @brief Header for remotes.
+ * @version 0.1
+ * @date 2022-10-27
+ *
+ * @copyright Copyright (c) 2022
+ *
+ */
 #pragma once
 
 #include <Vector.h>

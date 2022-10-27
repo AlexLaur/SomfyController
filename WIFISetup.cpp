@@ -1,3 +1,14 @@
+/**
+ * @file WIFISetup.cpp
+ * @author Laurette Alexandre
+ * @brief Implementation for WIFISetup
+ * @version 0.1
+ * @date 2022-10-27
+ *
+ * @copyright Copyright (c) 2022
+ *
+ */
+
 #include <ESP8266WiFi.h>
 #include <Logger.h>
 

@@ -1,5 +1,5 @@
 /**
- * @file remotes.cpp
+ * @file Remotes.cpp
  * @author Laurette Alexandre
  * @brief Remotes implementations
  * @version 0.1

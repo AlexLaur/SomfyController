@@ -1,5 +1,5 @@
 /**
- * @file config.h
+ * @file default_config.h
  * @author Laurette Alexandre
  * @brief Configuration for SOMFY Controller
  * @version 0.1

@@ -13,7 +13,7 @@ To work, you need to install some libraries listed below:
 
 ## Configuration
 
-1. Rename the `default-config.h` file to `config.h`
+1. Rename the `default_config.h` file to `config.h`
 2. Add or remove remotes by adding or removing elements from the list `SOMFY_CONFIG_REMOTES`.
 3. To add a remote, simply add a string corresponding to the name of the remote.
 4. To remove a remote, simply remove the string corresponding to the name of the remote.
@@ -29,13 +29,14 @@ Upload the project to the arduino.
 ---
 # UI
 
-The UI is built on top of ReactJS. A compiled version is already available in the [data directory](./data/). But you can modify the ui. All core application is defined in [ui directory](./ui/).
+The UI is built on top of ReactJS. A compiled version is already available in the [data directory](./data/).
+If you need to add some feature, you can. All core application is defined in [ui directory](./ui/).
 
 ![UI](./doc/ui.jpg)
 
 ## Edit
 
-- Node.js is required if you want to modify the UI.
+- [Node.js](https://nodejs.org/en/) is required if you want to modify the UI.
 
 Commands to start development server, build... are listed in the `README.md`.
 
@@ -65,3 +66,8 @@ curl ARDUINO_IP/blind?action=[up, down, stop, prod, reset, enable, disable]&remo
 # Homebridge
 
 You can link this project with Homebridge using the [homebridge-blinds](https://github.com/dxdc/homebridge-blinds#readme) plugin.
+
+
+---
+# Contributing
+Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
