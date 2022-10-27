@@ -1,8 +1,8 @@
 #include <ArduinoJson.h>
 #include <Vector.h>
 
-#include "serializer.h"
-#include "remotes.h"
+#include "Serializer.h"
+#include "Remotes.h"
 
 
 String Serializer::serialize(Vector<Remote> remotes)

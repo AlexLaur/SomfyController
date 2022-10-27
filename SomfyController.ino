@@ -16,9 +16,9 @@
 #include <Logger.h>
 
 #include "config.h"
-#include "wifi_setup.h"
-#include "remotes.h"
-#include "serializer.h"
+#include "WIFISetup.h"
+#include "Remotes.h"
+#include "Serializer.h"
 
 #define PORT_TX D1
 

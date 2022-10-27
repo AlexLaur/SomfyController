@@ -14,7 +14,7 @@
 #include <Vector.h>
 #include <Logger.h>
 
-#include "remotes.h"
+#include "Remotes.h"
 
 const unsigned long RemotesManager::REMOTE_BASE_ADDRESS = 0x100000;
 const unsigned int RemotesManager::MAX_REMOTES = 32;

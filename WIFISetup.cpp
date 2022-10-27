@@ -1,7 +1,7 @@
 #include <ESP8266WiFi.h>
 #include <Logger.h>
 
-#include "wifi_setup.h"
+#include "WIFISetup.h"
 
 /**
  * @brief Set the up wifi object

@@ -17,7 +17,7 @@ const char PASSWORD[] = "";
 
 const int SERVER_PORT = 80;
 
-// Remotes (max 32 remotes can be registered)
+// Remotes. You can change the name of remotes here.
 const char* SOMFY_CONFIG_REMOTES[] = {
     "Remote 00",
     "Remote 01",
