@@ -146,13 +146,15 @@ void blind_command(AsyncWebServerRequest* request)
     // All is valid, get remote.
     Remote* remote = manager.get_remote(remote_id);
 
-    if (!remote){
+    if (!remote)
+    {
       Logger::error("blind_command()", "No remote found for the given id.");
       request->send(400);
       return;
     }
 
-    if (action == REMOTES_ACTIONS::ENABLE || action == REMOTES_ACTIONS::DISABLE){
+    if (action == REMOTES_ACTIONS::ENABLE || action == REMOTES_ACTIONS::DISABLE)
+    {
       manager.toggle_remote_enable(remote->id);
       request->send(200);
       return;
@@ -165,7 +167,8 @@ void blind_command(AsyncWebServerRequest* request)
       return;
     }
 
-    if (action == REMOTES_ACTIONS::RESET){
+    if (action == REMOTES_ACTIONS::RESET)
+    {
       manager.reset_rolling_code(remote->id);
       request->send(200);
       return;
@@ -173,11 +176,14 @@ void blind_command(AsyncWebServerRequest* request)
 
     // We can send the command now!
     buildFrame(remote->id, remote->rolling_code, frame, action);
+
+    Logger::notice("Sending command...");
     sendCommand(frame, 2);
     for (int i = 0; i < 2; i++)
     {
       sendCommand(frame, 7);
     }
+    Logger::notice("Command sent.");
     manager.increment_rolling_code(remote->id);
   }
   request->send(200);
@@ -199,19 +205,24 @@ void buildFrame(unsigned long remote_id, unsigned int rolling_code, byte* frame,
   switch (action)
   {
   case REMOTES_ACTIONS::UP:
+    Logger::verbose("buildFrame()", "Building frame for UP Action...");
     button = BYTE_ACTION_UP;
     break;
   case REMOTES_ACTIONS::DOWN:
+    Logger::verbose("buildFrame()", "Building frame for DOWN Action...");
     button = BYTE_ACTION_DOWN;
     break;
   case REMOTES_ACTIONS::STOP:
+    Logger::verbose("buildFrame()", "Building frame for STOP Action...");
     button = BYTE_ACTION_STOP;
     break;
   case REMOTES_ACTIONS::PROG:
+    Logger::verbose("buildFrame()", "Building frame for PROG Action...");
     button = BYTE_ACTION_PROG;
     break;
   default:
     // Stop by default
+    Logger::verbose("buildFrame()", "Building frame for STOP Action...");
     button = BYTE_ACTION_STOP;
     break;
   }
@@ -224,17 +235,6 @@ void buildFrame(unsigned long remote_id, unsigned int rolling_code, byte* frame,
   frame[5] = remote_id >> 8;
   frame[6] = remote_id;
 
-  Serial.print("Frame         : ");
-  for (byte i = 0; i < 7; i++)
-  {
-    if (frame[i] >> 4 == 0)
-    {
-      Serial.print("0");
-    }
-    Serial.print(frame[i], HEX);
-    Serial.print(" ");
-  }
-
   byte checksum = 0;
   for (byte i = 0; i < 7; i++)
   {
@@ -244,37 +244,12 @@ void buildFrame(unsigned long remote_id, unsigned int rolling_code, byte* frame,
 
   frame[1] |= checksum;
 
-  Serial.println("");
-  Serial.print("Avec checksum : ");
-  for (byte i = 0; i < 7; i++)
-  {
-    if (frame[i] >> 4 == 0)
-    {
-      Serial.print("0");
-    }
-    Serial.print(frame[i], HEX);
-    Serial.print(" ");
-  }
-
   for (byte i = 1; i < 7; i++)
   {
     frame[i] ^= frame[i - 1];
   }
 
-  Serial.println("");
-  Serial.print("Obfuscation    : ");
-  for (byte i = 0; i < 7; i++)
-  {
-    if (frame[i] >> 4 == 0)
-    {
-      Serial.print("0");
-    }
-    Serial.print(frame[i], HEX);
-    Serial.print(" ");
-  }
-  Serial.println("");
-  Serial.print("Compteur  : ");
-  Serial.println(rolling_code);
+  Logger::verbose("buildFrame()", "Frame builded.");
 };
 
 void sendCommand(byte* frame, byte sync)

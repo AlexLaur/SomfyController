@@ -230,7 +230,7 @@ void RemotesManager::toggle_remote_enable(unsigned long remote_id)
 void RemotesManager::update(Remote remote)
 {
     char s[32]; // used for logger messages
-    snprintf_P(s, sizeof(s), PSTR("Updating the remote: %x"), remote.id);
+    snprintf_P(s, sizeof(s), PSTR("Updating the remote: %d"), remote.id);
     Logger::notice("RemotesManager::update()", s);
 
     for (unsigned int i = 0; i < this->remotes.size(); i++)
@@ -252,7 +252,7 @@ void RemotesManager::update(Remote remote)
         return;
     }
 
-    snprintf_P(s, sizeof(s), PSTR("No remote found with id %x."), remote.id);
+    snprintf_P(s, sizeof(s), PSTR("No remote found with id %d."), remote.id);
     Logger::warning("RemotesManager::update()", s);
     Logger::warning("RemotesManager::update()", "Nothing has been updated.");
 };
@@ -270,7 +270,7 @@ void RemotesManager::get_remotes_states()
 
         if (this->remotes[i].id != saved_remote.id)
         {
-            snprintf_P(s, sizeof(s), PSTR("Remote '%s' at '%x' seems to be corrupted."),
+            snprintf_P(s, sizeof(s), PSTR("Remote '%s' at '%d' seems to be corrupted."),
                 this->remotes[i].name, this->remotes[i].id);
             Logger::warning("RemotesManager::get_remotes_states()", s);
             Logger::warning("RemotesManager::get_remotes_states()",
@@ -287,7 +287,7 @@ void RemotesManager::get_remotes_states()
                 "RemotesManager::get_remotes_states()", "Remote writted into the memory.");
         }
 
-        snprintf_P(s, sizeof(s), PSTR("Updating remote '%x' with values from the memory..."),
+        snprintf_P(s, sizeof(s), PSTR("Updating remote '%d' with values from the memory..."),
             this->remotes[i].id);
         Logger::verbose("RemotesManager::get_remotes_states()", s);
 
