@@ -1,6 +1,8 @@
 # SomfyController
 Control Somfy blinds (with RTS Protocol) througt an Arduino Wemos D1.
 
+It is based from the work of `Nickduino` at [Somfy_Remote](https://github.com/Nickduino/Somfy_Remote)
+
 # Installation
 ## Required packages
 
@@ -17,6 +19,9 @@ To work, you need to install some libraries listed below:
 2. Add or remove remotes by adding or removing elements from the list `SOMFY_CONFIG_REMOTES`.
 3. To add a remote, simply add a string corresponding to the name of the remote.
 4. To remove a remote, simply remove the string corresponding to the name of the remote.
+
+## Soldering
+Solder a 433.42 MHz crystals to replace the one on a 433.92MHz transmitter. A RTL-SDR comes in handy to check the frequency and make sure the transmitter is working.
 
 ## Wiring
 
