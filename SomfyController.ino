@@ -196,21 +196,21 @@ void not_found_page(AsyncWebServerRequest* request)
   request->send(404, "text/plain", "404: The content you are looking for was not found.");
 };
 
-
 // ============================================================================
 // WEBSOCKET
 // ============================================================================
 
-void onWsEvent(AsyncWebSocket * server, AsyncWebSocketClient * client, AwsEventType type, void * arg, uint8_t *data, size_t len){
-
-  if(type == WS_EVT_CONNECT){
-
-    Serial.println("Websocket client connection received");
-    client->text("Hello from ESP32 Server");
-
-  } else if(type == WS_EVT_DISCONNECT){
-    Serial.println("Client disconnected");
-
+void onWsEvent(AsyncWebSocket* server, AsyncWebSocketClient* client, AwsEventType type, void* arg,
+    uint8_t* data, size_t len)
+{
+  if (type == WS_EVT_CONNECT)
+  {
+    Logger::notice("onWsEvent()", "Websocket client connection received.");
+    // client->text("Hi !");
+  }
+  else if (type == WS_EVT_DISCONNECT)
+  {
+    Logger::notice("onWsEvent()", "Client disconnected.");
   }
 }
 
@@ -220,12 +220,13 @@ void onWsEvent(AsyncWebSocket * server, AsyncWebSocketClient * client, AwsEventT
 
 void localLogger(Logger::Level level, const char* module, const char* message)
 {
-  String log = F("[")+ String(Logger::asString(level)) + F("]");
+  String log = F("[") + String(Logger::asString(level)) + F("]");
   if (strlen(module) > 0)
   {
     log += (F(": ") + String(module) + F(" "));
   }
-  else{
+  else
+  {
     log += F(": ");
   }
   log += String(message);
@@ -387,20 +388,11 @@ void setup()
 
   ws.onEvent(onWsEvent);
   server.addHandler(&ws);
+
   // Start the server
   server.begin();
 
-  // Vector<Remote> remotes = manager.get_remotes();
-  // auto salon_remote = remotes[0];
-  // salon_remote.rolling_code += 1;
-  // salon_remote.enabled = true;
-  // manager.update_remote(salon_remote);
-  // manager.reset_rolling_code(salon_remote.id);
-  // manager.toggle_remote_enable(salon_remote);
-
   Logger::notice("setup()", "Setup done.");
-
-  
 };
 
 void loop() {};
