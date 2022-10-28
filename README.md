@@ -12,6 +12,7 @@ To work, you need to install some libraries listed below:
 - [Vector](https://github.com/janelia-arduino/Vector)
 - [ESPAsyncWebServer](https://github.com/me-no-dev/ESPAsyncWebServer)
 - [ESPAsyncTCP](https://github.com/me-no-dev/ESPAsyncTCP)
+- [ArduinoJson](https://arduinojson.org/)
 
 ## Configuration
 
