@@ -38,6 +38,7 @@
 // ============================================================================
 
 AsyncWebServer server(SERVER_PORT);
+AsyncWebSocket ws("/ws");
 
 Remote remotes_array[32];
 static Vector<Remote> remotes(remotes_array);
@@ -196,8 +197,45 @@ void not_found_page(AsyncWebServerRequest* request)
 };
 
 // ============================================================================
+// WEBSOCKET
+// ============================================================================
+
+void onWsEvent(AsyncWebSocket* server, AsyncWebSocketClient* client, AwsEventType type, void* arg,
+    uint8_t* data, size_t len)
+{
+  if (type == WS_EVT_CONNECT)
+  {
+    Logger::notice("onWsEvent()", "Websocket client connection received.");
+    // client->text("Hi !");
+  }
+  else if (type == WS_EVT_DISCONNECT)
+  {
+    Logger::notice("onWsEvent()", "Client disconnected.");
+  }
+}
+
+// ============================================================================
 // IMPLEMENTATIONS
 // ============================================================================
+
+void localLogger(Logger::Level level, const char* module, const char* message)
+{
+  String log = F("[") + String(Logger::asString(level)) + F("]");
+  if (strlen(module) > 0)
+  {
+    log += (F(": ") + String(module) + F(" "));
+  }
+  else
+  {
+    log += F(": ");
+  }
+  log += String(message);
+
+  // Send to Serial
+  Serial.println(log);
+  // Send to WebSocket
+  ws.textAll(log);
+}
 
 void buildFrame(unsigned long remote_id, unsigned int rolling_code, byte* frame, int action)
 {
@@ -318,6 +356,7 @@ void setup()
 
   // Logger setup
   Logger::setLogLevel(Logger::VERBOSE);
+  Logger::setOutputFunction(localLogger);
 
   // Open the output for 433.42MHz and 433.92MHz transmitter
   pinMode(PORT_TX, OUTPUT);
@@ -347,16 +386,11 @@ void setup()
   server.on("/remotes", HTTP_GET, get_remotes);
   server.onNotFound(not_found_page);
 
+  ws.onEvent(onWsEvent);
+  server.addHandler(&ws);
+
   // Start the server
   server.begin();
-
-  // Vector<Remote> remotes = manager.get_remotes();
-  // auto salon_remote = remotes[0];
-  // salon_remote.rolling_code += 1;
-  // salon_remote.enabled = true;
-  // manager.update_remote(salon_remote);
-  // manager.reset_rolling_code(salon_remote.id);
-  // manager.toggle_remote_enable(salon_remote);
 
   Logger::notice("setup()", "Setup done.");
 };
