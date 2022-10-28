@@ -38,6 +38,7 @@
 // ============================================================================
 
 AsyncWebServer server(SERVER_PORT);
+AsyncWebSocket ws("/ws");
 
 Remote remotes_array[32];
 static Vector<Remote> remotes(remotes_array);
@@ -195,9 +196,45 @@ void not_found_page(AsyncWebServerRequest* request)
   request->send(404, "text/plain", "404: The content you are looking for was not found.");
 };
 
+
+// ============================================================================
+// WEBSOCKET
+// ============================================================================
+
+void onWsEvent(AsyncWebSocket * server, AsyncWebSocketClient * client, AwsEventType type, void * arg, uint8_t *data, size_t len){
+
+  if(type == WS_EVT_CONNECT){
+
+    Serial.println("Websocket client connection received");
+    client->text("Hello from ESP32 Server");
+
+  } else if(type == WS_EVT_DISCONNECT){
+    Serial.println("Client disconnected");
+
+  }
+}
+
 // ============================================================================
 // IMPLEMENTATIONS
 // ============================================================================
+
+void localLogger(Logger::Level level, const char* module, const char* message)
+{
+  String log = F("[")+ String(Logger::asString(level)) + F("]");
+  if (strlen(module) > 0)
+  {
+    log += (F(": ") + String(module) + F(" "));
+  }
+  else{
+    log += F(": ");
+  }
+  log += String(message);
+
+  // Send to Serial
+  Serial.println(log);
+  // Send to WebSocket
+  ws.textAll(log);
+}
 
 void buildFrame(unsigned long remote_id, unsigned int rolling_code, byte* frame, int action)
 {
@@ -318,6 +355,7 @@ void setup()
 
   // Logger setup
   Logger::setLogLevel(Logger::VERBOSE);
+  Logger::setOutputFunction(localLogger);
 
   // Open the output for 433.42MHz and 433.92MHz transmitter
   pinMode(PORT_TX, OUTPUT);
@@ -347,6 +385,8 @@ void setup()
   server.on("/remotes", HTTP_GET, get_remotes);
   server.onNotFound(not_found_page);
 
+  ws.onEvent(onWsEvent);
+  server.addHandler(&ws);
   // Start the server
   server.begin();
 
@@ -359,6 +399,8 @@ void setup()
   // manager.toggle_remote_enable(salon_remote);
 
   Logger::notice("setup()", "Setup done.");
+
+  
 };
 
 void loop() {};
