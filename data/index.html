@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SomfyController</title>
+    <meta name="author" content="Alexandre Laurette">
+    <meta name="description" content="">
+    <!-- Tailwind -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.3.0/flowbite.min.css" rel="stylesheet" />
+
+</head>
+
+<body class="bg-gray-100 font-family-karla flex">
+    <div class="w-full flex flex-col h-screen overflow-y-hidden">
+        <div class="w-full overflow-x-hidden border-t flex flex-col">
+            <main class="w-full flex-grow p-6">
+                <h1 class="text-3xl text-black pb-6">SomfyController</h1>
+                <div class="w-full">
+                    <p class="text-xl pb-3 flex items-center">
+                        <i class="fas fa-bars mr-3"></i> Blinds
+                    </p>
+
+                    <section class="sm w-full leading-loose pb-3" id="blinds-section">
+
+                        <div class="bg-white">
+                            <div class="overflow-x-auto">
+                                <table class="w-full whitespace-nowrap">
+                                    <thead class="bg-gray-800 text-white">
+                                        <tr>
+                                            <th class="text-left py-3 px-4 uppercase font-semibold text-sm">ID</th>
+                                            <th class="text-left py-3 px-4 uppercase font-semibold text-sm">Name</th>
+                                            <th class="text-left py-3 px-4 uppercase font-semibold text-sm">Enabled</th>
+                                            <th class="text-left py-3 px-4 uppercase font-semibold text-sm">Rolling code
+                                            </th>
+                                            <th class="text-left py-3 px-4 uppercase font-semibold text-sm">Actions</th>
+                                            <th class="text-left py-3 px-4 uppercase font-semibold text-sm">
+                                                Configuration</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr tabindex="0" class="focus:outline-none h-16 border border-gray-100 rounded">
+
+                                            <td>
+                                                <div class="flex items-center pl-4">
+                                                    <p class="text-base font-medium leading-none text-gray-600">123456
+                                                    </p>
+                                                </div>
+                                            </td>
+
+                                            <td>
+                                                <div class="flex items-center pl-4">
+                                                    <p class="text-base font-medium leading-none text-gray-600">Foo
+                                                    </p>
+                                                </div>
+                                            </td>
+
+                                            <td>
+                                                <div class="flex items-center pl-4">
+                                                    <!-- <p class="text-sm leading-none text-gray-600">Urgent</p> -->
+                                                    <label class="inline-flex items-center cursor-pointer">
+                                                        <input type="checkbox" value="" class="sr-only peer">
+                                                        <div
+                                                            class="relative w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-gray-600">
+                                                        </div>
+                                                    </label>
+                                                </div>
+                                            </td>
+
+                                            <td>
+                                                <div class="flex items-center pl-4">
+                                                    <p class="text-base font-medium  leading-none text-gray-600">0</p>
+                                                </div>
+                                            </td>
+
+                                            <td class="pl-4 pr-4">
+                                                <button
+                                                    class="text-sm leading-none text-gray-600 py-3 px-5 bg-gray-100 rounded hover:bg-gray-200 focus:outline-none"
+                                                    onclick="onUpRemoteClicked('foo')"><i
+                                                        class="fas fa-chevron-up mr-3"></i>Up</button>
+                                                <button
+                                                    class="text-sm leading-none text-gray-600 py-3 px-5 bg-gray-100 rounded hover:bg-gray-200 focus:outline-none"
+                                                    onclick="onStopRemoteClicked('foo')"><i
+                                                        class="fas fa-stop mr-3"></i>Stop</button>
+                                                <button
+                                                    class="text-sm leading-none text-gray-600 py-3 px-5 bg-gray-100 rounded hover:bg-gray-200 focus:outline-none"
+                                                    onclick="onDownRemoteClicked('foo')"><i
+                                                        class="fas fa-chevron-down mr-3"></i>Down</button>
+                                            </td>
+
+                                            <td class="pl-4 pr-4">
+                                                <button
+                                                    class="text-sm leading-none text-gray-600 py-3 px-5 bg-gray-100 rounded hover:bg-gray-200 focus:outline-none"
+                                                    data-modal-target="popup-modal-pair"
+                                                    data-modal-toggle="popup-modal-pair"
+                                                    onclick="onPairRemoteClicked('foo')"><i
+                                                        class="fas fa-exchange-alt mr-3"></i>Pair</button>
+                                                <button
+                                                    class="text-sm leading-none text-gray-600 py-3 px-5 bg-red-400 rounded hover:bg-red-500 focus:outline-none"
+                                                    data-modal-target="popup-modal-reset"
+                                                    data-modal-toggle="popup-modal-reset"
+                                                    onclick="onResetRemoteClicked('foo')">Reset</button>
+                                                <button
+                                                    class="text-sm leading-none text-gray-600 py-3 px-5 bg-red-400 rounded hover:bg-red-500 focus:outline-none"
+                                                    data-modal-target="popup-modal-delete"
+                                                    data-modal-toggle="popup-modal-delete"
+                                                    onclick="onDeleteRemoteClicked('foo')"><i
+                                                        class="fas fa-trash-alt mr-3"></i>Delete</button>
+                                            </td>
+
+                                        </tr>
+
+                                        <tr class="focus:outline-none h-16 border border-gray-100 rounded">
+                                            <td class="pl-4 pr-4" colspan="6">
+                                                <div class=" flex flex-col items-center justify-center">
+                                                    <div>
+                                                        <button
+                                                            class="text-sm leading-none text-gray-600 py-3 px-5 bg-gray-100 rounded hover:bg-gray-200 focus:outline-none"
+                                                            data-modal-target="popup-modal-new"
+                                                            data-modal-toggle="popup-modal-new">
+                                                            <i class="fas fa-plus"></i>
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </section>
+
+                    <p class="text-xl pb-3 flex items-center">
+                        <i class="fas fa-info mr-3"></i> Logger
+                    </p>
+
+                    <section class="sm w-full leading-loose" id="logs-section">
+                        <textarea class="w-full px-5 py-2 text-gray-700 bg-gray-200 rounded" name="logs" rows="6"
+                            aria-label="logs" readonly></textarea>
+                    </section>
+
+                    <p class="text-xl pb-3 flex items-center">
+                        <i class="fas fa-code mr-3"></i> API
+                    </p>
+
+                    <section class="" id="api-section">
+                        <div class="bg-white">
+                            <div class="overflow-x-auto">
+                                <table class="w-full whitespace-nowrap">
+                                    <thead class="bg-gray-800 text-white">
+                                        <tr>
+                                            <th class="text-left w-1/6 py-3 px-4 uppercase font-semibold text-sm">Method
+                                            </th>
+                                            <th class="text-left w-2/6 py-3 px-4 uppercase font-semibold text-sm">
+                                                Endpoint</th>
+                                            <th class="text-left w-1/6 py-3 px-4 uppercase font-semibold text-sm">
+                                                Description</th>
+                                            <th class="text-left w-2/6 py-3 px-4 uppercase font-semibold text-sm">
+                                                Payload</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr class="focus:outline-none h-16 border border-gray-100 rounded">
+                                            <td>
+                                                <div class="flex items-center pl-4">
+                                                    <span
+                                                        class="relative inline-block px-3 py-1 font-semibold text-green-900 leading-tight">
+                                                        <span aria-hidden
+                                                            class="absolute inset-0 bg-green-200 opacity-50 rounded-full"></span>
+                                                        <span class="relative">GET</span>
+                                                    </span>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <div class="flex items-center pl-4">
+                                                    <p class="text-sm leading-none text-gray-600">/remotes</p>
+                                                </div>
+                                            </td>
+                                            <td>Get all remotes.</td>
+                                            <td></td>
+                                        </tr>
+                                        <tr class="focus:outline-none h-16 border border-gray-100 rounded">
+                                            <td>
+                                                <div class="flex items-center pl-4">
+                                                    <span
+                                                        class="relative inline-block px-3 py-1 font-semibold text-green-900 leading-tight">
+                                                        <span aria-hidden
+                                                            class="absolute inset-0 bg-sky-200 opacity-50 rounded-full"></span>
+                                                        <span class="relative">POST</span>
+                                                    </span>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <div class="flex items-center pl-4">
+                                                    <p class="text-sm leading-none text-gray-600">
+                                                        <code>/remotes/new</code>
+                                                    </p>
+                                                </div>
+                                            </td>
+                                            <td>Create a remote.</td>
+                                            <td>
+                                                <div class="flex items-center pl-4">
+                                                    <code
+                                                        class="text-sm sm:text-base inline-flex text-left items-center space-x-4 bg-gray-800 text-white rounded-lg p-1">
+                                                        {<span class="text-sky-400">"name"</span>:<span class="text-green-600">"Remote Name"</span>}
+                                                    </code>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        <tr class="focus:outline-none h-16 border border-gray-100 rounded">
+                                            <td>
+                                                <div class="flex items-center pl-4">
+                                                    <span
+                                                        class="relative inline-block px-3 py-1 font-semibold text-green-900 leading-tight">
+                                                        <span aria-hidden
+                                                            class="absolute inset-0 bg-sky-200 opacity-50 rounded-full"></span>
+                                                        <span class="relative">POST</span>
+                                                    </span>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <div class="flex items-center pl-4">
+                                                    <p class="text-sm leading-none text-gray-600">
+                                                        <code>/remotes/{remote_id}/reset</code>
+                                                    </p>
+                                                </div>
+                                            </td>
+                                            <td>Reset the rolling code of the remote.</td>
+                                            <td></td>
+                                        </tr>
+                                        <tr class="focus:outline-none h-16 border border-gray-100 rounded">
+                                            <td>
+                                                <div class="flex items-center pl-4">
+                                                    <span
+                                                        class="relative inline-block px-3 py-1 font-semibold text-green-900 leading-tight">
+                                                        <span aria-hidden
+                                                            class="absolute inset-0 bg-sky-200 opacity-50 rounded-full"></span>
+                                                        <span class="relative">POST</span>
+                                                    </span>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <div class="flex items-center pl-4">
+                                                    <p class="text-sm leading-none text-gray-600">
+                                                        <code>/remotes/{remote_id}/delete</code>
+                                                    </p>
+                                                </div>
+                                            </td>
+                                            <td>Delete the remote.</td>
+                                            <td></td>
+                                        </tr>
+                                        <tr class="focus:outline-none h-16 border border-gray-100 rounded">
+                                            <td>
+                                                <div class="flex items-center pl-4">
+                                                    <span
+                                                        class="relative inline-block px-3 py-1 font-semibold text-green-900 leading-tight">
+                                                        <span aria-hidden
+                                                            class="absolute inset-0 bg-sky-200 opacity-50 rounded-full"></span>
+                                                        <span class="relative">POST</span>
+                                                    </span>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <div class="flex items-center pl-4">
+                                                    <p class="text-sm leading-none text-gray-600">
+                                                        <code>/remotes/{remote_id}/pair</code>
+                                                    </p>
+                                                </div>
+                                            </td>
+                                            <td>Pair the remote with the blind.</td>
+                                            <td></td>
+                                        </tr>
+                                        <tr class="focus:outline-none h-16 border border-gray-100 rounded">
+                                            <td>
+                                                <div class="flex items-center pl-4">
+                                                    <span
+                                                        class="relative inline-block px-3 py-1 font-semibold text-green-900 leading-tight">
+                                                        <span aria-hidden
+                                                            class="absolute inset-0 bg-sky-200 opacity-50 rounded-full"></span>
+                                                        <span class="relative">POST</span>
+                                                    </span>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <div class="flex items-center pl-4">
+                                                    <p class="text-sm leading-none text-gray-600">
+                                                        <code>/remotes/{remote_id}/action</code>
+                                                    </p>
+                                                </div>
+                                            </td>
+                                            <td>Set an action (up, down, stop, enable, disable).</td>
+                                            <td>
+                                                <div class="flex items-center pl-4">
+                                                    <code
+                                                        class="text-sm sm:text-base inline-flex text-left items-center space-x-4 bg-gray-800 text-white rounded-lg p-1">
+                                                        {<span class="text-sky-400">"action"</span>: <span class="text-green-600">"up, down, stop, enable, disable"</span>}
+                                                    </code>
+                                                </div>
+                                            </td>
+                                        </tr>
+
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </main>
+
+            <!-- MODALS -->
+            <div id="popup-modal-new" tabindex="-1"
+                class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
+                <div class="relative p-4 w-full max-w-md max-h-full">
+                    <div class="relative bg-white rounded-lg shadow dark:bg-gray-700">
+                        <button type="button"
+                            class="absolute top-3 end-2.5 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white"
+                            data-modal-hide="popup-modal-new">
+                            <i class="fas fa-times"></i>
+                            <span class="sr-only">Close modal</span>
+                        </button>
+                        <div class="p-4 md:p-5 text-center">
+                            <p><i
+                                    class="fas fa-exclamation-triangle mx-auto mb-4 text-gray-400 dark:text-gray-200 w-32"></i>
+                            </p>
+                            <form action="/remotes/new" method="POST">
+                                <div class="mb-4">
+                                    <div>
+                                        <label for="remote_name"
+                                            class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Remote
+                                            name</label>
+                                        <input type="text" id="remote_name"
+                                            class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                                            placeholder="Bedroom Blind" required />
+                                    </div>
+                                </div>
+                            </form>
+                            <button id="popup-modal-new-ok-btn" data-modal-hide="popup-modal-new"
+                                class="text-sm leading-none text-gray-600 py-3 px-5 bg-gray-100 rounded hover:bg-gray-200 focus:outline-none">
+                                OK
+                            </button>
+                            <button data-modal-hide="popup-modal-new"
+                                class="text-sm leading-none text-gray-600 py-3 px-5 bg-gray-100 rounded hover:bg-gray-200 focus:outline-none">
+                                Cancel
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="popup-modal-delete" tabindex="-1"
+                class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
+                <div class="relative p-4 w-full max-w-md max-h-full">
+                    <div class="relative bg-white rounded-lg shadow dark:bg-gray-700">
+                        <button type="button"
+                            class="absolute top-3 end-2.5 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white"
+                            data-modal-hide="popup-modal-delete">
+                            <i class="fas fa-times"></i>
+                            <span class="sr-only">Close modal</span>
+                        </button>
+                        <div class="p-4 md:p-5 text-center">
+                            <p><i
+                                    class="fas fa-exclamation-triangle mx-auto mb-4 text-gray-400 dark:text-gray-200 w-32"></i>
+                            </p>
+                            <p class="text-base font-normal leading-none text-gray-600 pb-6">
+                                Are you sure you want to delete the remote <span class="font-black"
+                                    id="popup-modal-delete-remote-name"></span> ?
+                            </p>
+                            <button id="popup-modal-delete-ok-btn" data-modal-hide="popup-modal-delete"
+                                class="text-sm leading-none text-gray-600 py-3 px-5 bg-red-400 rounded hover:bg-red-500 focus:outline-none">
+                                Yes, I'm sure
+                            </button>
+                            <button data-modal-hide="popup-modal-delete"
+                                class="text-sm leading-none text-gray-600 py-3 px-5 bg-gray-100 rounded hover:bg-gray-200 focus:outline-none">
+                                No, cancel
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="popup-modal-pair" tabindex="-1"
+                class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
+                <div class="relative p-4 w-full max-w-md max-h-full">
+                    <div class="relative bg-white rounded-lg shadow dark:bg-gray-700">
+                        <button type="button"
+                            class="absolute top-3 end-2.5 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white"
+                            data-modal-hide="popup-modal-pair">
+                            <i class="fas fa-times"></i>
+                            <span class="sr-only">Close modal</span>
+                        </button>
+                        <div class="p-4 md:p-5 text-center">
+                            <p><i
+                                    class="fas fa-exclamation-triangle mx-auto mb-4 text-gray-400 dark:text-gray-200 w-32"></i>
+                            </p>
+                            <p class="text-base font-normal leading-none text-gray-600 pb-6">
+                                Are you sure you want to pair the remote <span class="font-black"
+                                    id="popup-modal-pair-remote-name"></span> ?
+                            </p>
+                            <button id="popup-modal-pair-ok-btn" data-modal-hide="popup-modal-pair"
+                                class="text-sm leading-none text-gray-600 py-3 px-5 bg-red-400 rounded hover:bg-red-500 focus:outline-none">
+                                Yes, I'm sure
+                            </button>
+                            <button data-modal-hide="popup-modal-pair"
+                                class="text-sm leading-none text-gray-600 py-3 px-5 bg-gray-100 rounded hover:bg-gray-200 focus:outline-none">
+                                No, cancel
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="popup-modal-reset" tabindex="-1"
+                class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
+                <div class="relative p-4 w-full max-w-md max-h-full">
+                    <div class="relative bg-white rounded-lg shadow dark:bg-gray-700">
+                        <button type="button"
+                            class="absolute top-3 end-2.5 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white"
+                            data-modal-hide="popup-modal-reset">
+                            <i class="fas fa-times"></i>
+                            <span class="sr-only">Close modal</span>
+                        </button>
+                        <div class="p-4 md:p-5 text-center">
+                            <p><i
+                                    class="fas fa-exclamation-triangle mx-auto mb-4 text-gray-400 dark:text-gray-200 w-32"></i>
+                            </p>
+                            <p class="text-base font-normal leading-none text-gray-600 pb-6">
+                                Are you sure you want to reset the remote <span class="font-black"
+                                    id="popup-modal-reset-remote-name"></span> ? It will reset the rolling code and this
+                                remote will lost the link with the blind.
+                            </p>
+                            <button id="popup-modal-reset-ok-btn" data-modal-hide="popup-modal-reset"
+                                class="text-sm leading-none text-gray-600 py-3 px-5 bg-red-400 rounded hover:bg-red-500 focus:outline-none">
+                                Yes, I'm sure
+                            </button>
+                            <button data-modal-hide="popup-modal-reset"
+                                class="text-sm leading-none text-gray-600 py-3 px-5 bg-gray-100 rounded hover:bg-gray-200 focus:outline-none">
+                                No, cancel
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+        <!-- <footer class="w-full bg-white text-right p-4"></footer> -->
+    </div>
+
+    <script>
+        function onUpRemoteClicked(remoteID) {
+            postRequest(`/remotes/${remoteID}/action`, { action: "up" });
+        }
+
+        function onDownRemoteClicked(remoteID) {
+            postRequest(`/remotes/${remoteID}/action`, { action: "down" });
+        }
+
+        function onStopRemoteClicked(remoteID) {
+            postRequest(`/remotes/${remoteID}/action`, { action: "stop" });
+        }
+
+        function onEnableRemoteClicked(remoteID) {
+            postRequest(`/remotes/${remoteID}/action`, { action: "enable" }); // disable
+        }
+
+        function onCreateRemoteClicked() {
+
+        }
+
+        // Danger Zone
+        function onPairRemoteClicked(remoteID) {
+            // Setup modal informations and open it
+            let okBtn = document.getElementById("popup-modal-pair-ok-btn");
+            okBtn.setAttribute("onclick", `onPairRemoteConfirmationClicked("${remoteID}")`);
+            let remoteNameElement = document.getElementById("popup-modal-pair-remote-name");
+            remoteNameElement.innerHTML = remoteID;
+        }
+
+        function onResetRemoteClicked(remoteID) {
+            // Setup modal informations and open it
+            let okBtn = document.getElementById("popup-modal-reset-ok-btn");
+            okBtn.setAttribute("onclick", `onResetRemoteConfirmationClicked("${remoteID}")`);
+            let remoteNameElement = document.getElementById("popup-modal-reset-remote-name");
+            remoteNameElement.innerHTML = remoteID;
+        }
+
+        function onDeleteRemoteClicked(remoteID) {
+            // Setup modal informations and open it
+            let okBtn = document.getElementById("popup-modal-delete-ok-btn");
+            okBtn.setAttribute("onclick", `onDeleteRemoteConfirmationClicked("${remoteID}")`);
+            let remoteNameElement = document.getElementById("popup-modal-delete-remote-name");
+            remoteNameElement.innerHTML = remoteID;
+        }
+
+        function onPairRemoteConfirmationClicked(remoteID) {
+            postRequest(`/remotes/${remoteID}/pair`, {});
+        }
+
+        function onResetRemoteConfirmationClicked(remoteID) {
+            postRequest(`/remotes/${remoteID}/reset`, {});
+        }
+
+        function onDeleteRemoteConfirmationClicked(remoteID) {
+            postRequest(`/remotes/${remoteID}/delete`, {});
+        }
+
+        function postRequest(endpoint, data, onSuccess, onFailed) {
+            fetch(endpoint, { method: "POST", body: JSON.stringify(data) }).then(function (response) {
+                return response.json();
+            }).then(function (data) {
+                if (onSuccess) {
+                    onSuccess(data);
+                }
+            }).catch(function (err) {
+                console.log(err);
+                if (onFailed) {
+                    onFailed();
+                }
+            });
+        }
+
+        function getRequest(endpoint, onSuccess, onFailed) {
+            fetch(endpoint).then(function (response) {
+                return response.json();
+            }).then(function (data) {
+                if (onSuccess) {
+                    onSuccess(data);
+                }
+            }).catch(function (err) {
+                console.log(err);
+                if (onFailed) {
+                    onFailed();
+                }
+            });
+        }
+    </script>
+
+    <!-- AlpineJS -->
+    <script src="https://cdn.jsdelivr.net/gh/alpinejs/alpine@v2.x.x/dist/alpine.min.js" defer></script>
+    <!-- Font Awesome -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.13.0/js/all.min.js"
+        integrity="sha256-KzZiKy0DWYsnwMF+X1DvQngQ2/FxF7MF3Ff72XcpuPs=" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.3.0/flowbite.min.js"></script>
+
+</body>
+
+</html>
