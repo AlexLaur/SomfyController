@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SomfyController</title>
+    <meta name="author" content="Alexandre Laurette">
+    <meta name="description" content="">
+    <!-- Tailwind -->
+    <script src="static/js/tailwindcss-3.4.4.min.js"></script>
+
+</head>
+
+<body class="bg-gray-100 font-family-karla flex">
+    <div class="w-full flex flex-col h-screen overflow-y-hidden">
+        <div class="w-full overflow-x-hidden border-t flex flex-col">
+            <main class="w-full flex-grow p-6">
+                <h1 class="text-3xl text-black pb-6">SomfyController</h1>
+                <div class="w-full">
+
+                    <div class="grid grid-cols-1 md:grid-cols-2">
+                        <div class="p-2">
+                            <p class="text-xl pb-3 flex items-center">
+                                <i class="fas fa-wifi mr-3"></i> Wifi
+                            </p>
+                            <div class="bg-white">
+                                <div class="overflow-x-auto">
+
+                                    <div class="table w-full">
+                                        <div class="table-header-group bg-gray-800 text-white">
+                                            <div class="table-row">
+                                                <div
+                                                    class="table-cell text-left py-3 px-4 uppercase font-semibold text-sm">
+                                                    SSID</div>
+                                                <div
+                                                    class="table-cell text-left py-3 px-4 uppercase font-semibold text-sm">
+                                                    Signal</div>
+                                            </div>
+                                        </div>
+                                        <div class="table-row-group">
+                                            <a href="#" class="table-row">
+                                                <div
+                                                    class="table-cell border-b border-slate-100 dark:border-slate-700 p-4 text-sm leading-none text-gray-600">
+                                                    SSID
+                                                </div>
+                                                <div
+                                                    class="table-cell border-b border-slate-100 dark:border-slate-700 p-4 text-sm leading-none text-gray-600">
+                                                    Signal
+                                                </div>
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="p-2">
+                            <p class="text-xl pb-3 flex items-center">
+                                <i class="fas fa-cogs mr-3"></i> Configuration
+                            </p>
+                            <div class="bg-white p-3">
+                                <div class="overflow-x-auto">
+                                    <form action="/wifi" method="POST">
+                                        <div class="grid gap-3 mb-3 md:grid-cols-1">
+                                            <div>
+                                                <label for="wifi_ssid"
+                                                    class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">SSID</label>
+                                                <input type="text" id="wifi_ssid"
+                                                    class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                                                    required />
+                                            </div>
+                                            <div>
+                                                <label for="wifi_password"
+                                                    class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Password</label>
+                                                <input type="password" id="wifi_password"
+                                                    class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                                                    placeholder="******" required />
+                                            </div>
+                                            <div>
+                                                <button type="submit"
+                                                    class="text-sm leading-none text-gray-600 py-3 px-5 bg-gray-100 rounded hover:bg-gray-200 focus:outline-none">Save</button>
+                                            </div>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Font Awesome -->
+    <script src="static/js/fontawesome-5.13.0.min.js"></script>
+
+</body>
+
+</html>
