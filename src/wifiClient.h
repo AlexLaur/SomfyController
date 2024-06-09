@@ -10,6 +10,5 @@ public:
     bool connect(const char *ssid, const char *password);
     IPAddress getIP();
     bool isConnected();
-    Network* getNetworks();
-
+    void getNetworks(Network networks[]);
 };

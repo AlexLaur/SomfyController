@@ -30,7 +30,3 @@
 *.exe
 *.out
 *.app
-
-# Project specific
-config.h
-*/node_modules/*

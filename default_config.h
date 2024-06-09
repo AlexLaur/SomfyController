@@ -2,26 +2,20 @@
  * @file default_config.h
  * @author Laurette Alexandre
  * @brief Configuration for SOMFY Controller
- * @version 0.1
- * @date 2022-10-20
+ * @version 2.0.0
+ * @date 2024-06-06
  *
- * This file should be rename in "config.h".
- *
- * @copyright Copyright (c) 2022
+ * @copyright Copyright (c) 2024
  *
  */
 #pragma once
 
-const char SSID[] = "";
-const char PASSWORD[] = "";
+const char AP_SSID[] = "SomfyController Fallback Hotspot";
+const char AP_PASSWORD[] = "5cKErSRCyQzy";
 
 const int SERVER_PORT = 80;
 
-// Remotes. You can change the name of remotes here.
-const char* SOMFY_CONFIG_REMOTES[] = {
-    "Remote 00",
-    "Remote 01",
-    "Remote 02",
-    "Remote 03",
-    "Remote 04"
-};
+const unsigned short MAX_NETWORK_SCAN = 10;
+
+const unsigned short MAX_REMOTES = 32;
+const unsigned long REMOTE_BASE_ADDRESS = 0x100000;

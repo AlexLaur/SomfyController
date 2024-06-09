@@ -3,6 +3,7 @@
 
 #include "wifiClient.h"
 #include "dto/networks.h"
+#include "../default_config.h"
 
 /**
  * @brief Connect this device to a network
@@ -71,32 +72,29 @@ bool WifiClient::isConnected() { return (WiFi.status() == WL_CONNECTED); };
 
 /**
  * @brief Return the list of Network found
- * Don't forget to free the result of this method.
  *
- * > auto networks = WifiClient.getNetworks();
- * > ...
- * > free(networks);
- *
- * @return Network*
+ * @param networks Array of Networks.
  */
-Network* WifiClient::getNetworks()
+void WifiClient::getNetworks(Network networks[])
 {
-  int n = WiFi.scanNetworks();
-  Network* networks = (Network*)malloc(n * sizeof(Network));
-  if (n == 0)
+  int count = WiFi.scanNetworks();
+  if (count == 0)
   {
     LOG_WARN("No Wifi Networks detected.");
-    return networks;
   }
-
-  for (int i = 0; i < n; ++i)
+  else
   {
-    // Get SSID and RSSI for each network found
-    String ssid = WiFi.SSID(i); // SSID
-    long rssi = WiFi.RSSI(i); // Signal strength in dBm
-    Network network = { ssid, rssi };
-    networks[i] = network;
-  }
+    for (int i = 0; i < count && i < MAX_NETWORK_SCAN; ++i)
+    {
+      // Get SSID and RSSI for each network found
+      networks[i].SSID = WiFi.SSID(i);
+      networks[i].RSSI = WiFi.RSSI(i); // Signal strength in dBm
+    }
 
-  return networks;
+    for (int i = count; i < MAX_NETWORK_SCAN; ++i)
+    {
+      networks[i].SSID = "";
+      networks[i].RSSI = -255;
+    }
+  }
 };

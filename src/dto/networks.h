@@ -9,6 +9,6 @@ struct Network
 
 struct NetworkConfiguration
 {
-  char ssid[30];
-  char password[30];
+  char ssid[32];
+  char password[63];
 };

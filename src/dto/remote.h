@@ -4,4 +4,5 @@ struct Remote
 {
     unsigned long id;
     unsigned int rolling_code;
+    char name[8];
 };
