@@ -16,8 +16,7 @@
 void EEPROMDatabase::init()
 {
   size_t totalSize = sizeof(NetworkConfiguration) + sizeof(Remote) * MAX_REMOTES;
-  LOG_INFO("Allocating EEPROM space: ");
-  LOG_INFO(totalSize);
+  LOG_INFO("Allocating EEPROM space: ", totalSize);
   EEPROM.begin(totalSize);
 
   // Todo wipe to emptyRemote all corupted remotes
@@ -51,8 +50,7 @@ void EEPROMDatabase::init()
     }
   }
   EEPROM.commit();
-  LOG_DEBUG("Corrupted Remotes detected and reseted: ");
-  LOG_DEBUG(count);
+  LOG_DEBUG("Corrupted Remotes detected and reseted: ", count);
 }
 
 /**
@@ -68,10 +66,8 @@ NetworkConfiguration EEPROMDatabase::getNetworkConfiguration()
   if (!this->stringIsAscii(networkConfig.ssid) || !this->stringIsAscii(networkConfig.password))
   {
     LOG_ERROR("The networkConfig seems to be corrupted. An empty config will be returned.");
-    LOG_DEBUG("SSID:");
-    LOG_DEBUG(networkConfig.ssid);
-    LOG_DEBUG("Password:");
-    LOG_DEBUG(networkConfig.password);
+    LOG_DEBUG("SSID: ", networkConfig.ssid);
+    LOG_DEBUG("Password: ", networkConfig.password);
 
     strcpy(networkConfig.ssid, "");
     strcpy(networkConfig.password, "");
@@ -117,7 +113,7 @@ void EEPROMDatabase::getAllRemotes(Remote remotes[])
   {
     EEPROM.get(this->m_remotesAddressStart + i * sizeof(Remote), remoteRead);
     remotes[i].id = remoteRead.id;
-    remotes[i].rolling_code = remoteRead.rolling_code;
+    remotes[i].rollingCode = remoteRead.rollingCode;
     strcpy(remotes[i].name, remoteRead.name);
   }
 }
@@ -130,8 +126,7 @@ void EEPROMDatabase::getAllRemotes(Remote remotes[])
  */
 Remote EEPROMDatabase::getRemote(const unsigned long& id)
 {
-  LOG_INFO("Looking for the remote with the ID:");
-  LOG_INFO(id);
+  LOG_INFO("Looking for the remote with the ID: ", id);
   int index = this->getRemoteIndex(id);
   if (index < 0)
   {
@@ -156,8 +151,7 @@ Remote EEPROMDatabase::getRemote(const unsigned long& id)
  */
 bool EEPROMDatabase::deleteRemote(const unsigned long& id)
 {
-  LOG_INFO("Removing remote with the ID:");
-  LOG_INFO(id);
+  LOG_INFO("Removing remote with the ID:", id);
   int index = this->getRemoteIndex(id);
   if (index < 0)
   {
@@ -189,7 +183,7 @@ Remote EEPROMDatabase::createRemote(const char* name)
     return emptyRemote;
   }
   emptyRemote.id = REMOTE_BASE_ADDRESS + index;
-  emptyRemote.rolling_code = 0;
+  emptyRemote.rollingCode = 0;
   strcpy(emptyRemote.name, name);
 
   EEPROM.put(this->m_remotesAddressStart + index * sizeof(Remote), emptyRemote);
@@ -208,8 +202,7 @@ Remote EEPROMDatabase::createRemote(const char* name)
  */
 bool EEPROMDatabase::updateRemote(const Remote& remote)
 {
-  LOG_INFO("Updating remote ID:");
-  LOG_INFO(remote.id);
+  LOG_INFO("Updating remote ID: ", remote.id);
   int index = this->getRemoteIndex(remote.id);
   if (index < 0)
   {

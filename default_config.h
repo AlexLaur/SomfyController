@@ -15,7 +15,7 @@ const char AP_PASSWORD[] = "5cKErSRCyQzy";
 
 const int SERVER_PORT = 80;
 
-const unsigned short MAX_NETWORK_SCAN = 10;
+const unsigned short MAX_NETWORK_SCAN = 15;
 
 const unsigned short MAX_REMOTES = 32;
 const unsigned long REMOTE_BASE_ADDRESS = 0x100000;

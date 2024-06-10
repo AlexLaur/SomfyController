@@ -2,8 +2,8 @@
 
 struct Network
 {
-    String SSID;
-    long RSSI;
+    char SSID[32];
+    int RSSI;
 };
 
 

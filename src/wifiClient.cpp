@@ -77,7 +77,11 @@ bool WifiClient::isConnected() { return (WiFi.status() == WL_CONNECTED); };
  */
 void WifiClient::getNetworks(Network networks[])
 {
-  int count = WiFi.scanNetworks();
+  WiFi.mode(WIFI_STA);
+  WiFi.disconnect();
+  delay(100);
+
+  int count = WiFi.scanNetworks(false);
   if (count == 0)
   {
     LOG_WARN("No Wifi Networks detected.");
@@ -86,14 +90,15 @@ void WifiClient::getNetworks(Network networks[])
   {
     for (int i = 0; i < count && i < MAX_NETWORK_SCAN; ++i)
     {
+      LOG_INFO(WiFi.SSID(i));
       // Get SSID and RSSI for each network found
-      networks[i].SSID = WiFi.SSID(i);
+      strcpy(networks[i].SSID, WiFi.SSID(i).c_str());
       networks[i].RSSI = WiFi.RSSI(i); // Signal strength in dBm
     }
 
     for (int i = count; i < MAX_NETWORK_SCAN; ++i)
     {
-      networks[i].SSID = "";
+      strcpy(networks[i].SSID, "");
       networks[i].RSSI = -255;
     }
   }
