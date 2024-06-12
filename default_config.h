@@ -17,5 +17,9 @@ const int SERVER_PORT = 80;
 
 const unsigned short MAX_NETWORK_SCAN = 15;
 
-const unsigned short MAX_REMOTES = 32;
+// Only 16 chars for the name.
+// Warning: Increase with value will take more space in the database.
+// If some remotes exists. These will be erase.
+const unsigned short MAX_REMOTE_NAME_LENGTH = 16;
+const unsigned short MAX_REMOTES = 16;
 const unsigned long REMOTE_BASE_ADDRESS = 0x100000;

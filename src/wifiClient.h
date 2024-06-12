@@ -1,9 +1,10 @@
 #pragma once
 
 #include <ESP8266WiFi.h>
+#include "abstracts/networkClient.h"
 #include "dto/networks.h"
 
-class WifiClient
+class WifiClient: public NetworkClient
 {
 public:
     bool connect(const NetworkConfiguration &conf);

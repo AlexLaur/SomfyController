@@ -90,7 +90,6 @@ void WifiClient::getNetworks(Network networks[])
   {
     for (int i = 0; i < count && i < MAX_NETWORK_SCAN; ++i)
     {
-      LOG_INFO(WiFi.SSID(i));
       // Get SSID and RSSI for each network found
       strcpy(networks[i].SSID, WiFi.SSID(i).c_str());
       networks[i].RSSI = WiFi.RSSI(i); // Signal strength in dBm

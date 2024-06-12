@@ -1,6 +1,5 @@
 #pragma once
 
-#include <Vector.h>
 #include "../wifiClient.h"
 #include "../dto/networks.h"
 #include "../dto/remote.h"
@@ -11,7 +10,7 @@ class Database
   virtual void init() = 0;
 
   virtual NetworkConfiguration getNetworkConfiguration() = 0;
-  virtual void setNetworkConfiguration(const NetworkConfiguration& networkConfig) = 0;
+  virtual bool setNetworkConfiguration(const NetworkConfiguration& networkConfig) = 0;
   virtual void resetNetworkConfiguration() = 0;
 
   // CRUD methods for remote

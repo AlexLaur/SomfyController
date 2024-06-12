@@ -6,6 +6,7 @@
 
 void WifiAccessPoint::startAccessPoint(const char *ssid, const char *password)
 {
+    LOG_DEBUG("Opening Access Point...");
     if (password != NULL){
         WiFi.softAP(ssid);
         LOG_DEBUG("Open Access Point (AP) started.");

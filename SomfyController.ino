@@ -20,28 +20,38 @@
 #include <ESPAsyncWebServer.h>
 
 #include "default_config.h"
+#include "src/controller.h"
 #include "src/wifiClient.h"
 #include "src/wifiAccessPoint.h"
 #include "src/eepromDatabase.h"
-
+#include "src/jsonSerializer.h"
+#include "src/dto/result.h"
 #include "src/dto/remote.h"
 #include "src/dto/networks.h"
 
 EEPROMDatabase database;
 WifiClient wifiClient;
 WifiAccessPoint wifiAP;
+JSONSerializer serializer;
 AsyncWebServer server(SERVER_PORT);
 
 Network networks[MAX_NETWORK_SCAN];
+
+Controller controller(&database, &wifiClient, &serializer);
 
 // ============================================================================
 // WEBSERVER CALLBACKS
 // ============================================================================
 
-void homePage(AsyncWebServerRequest* request) { request->send(LittleFS, "/wifi.html", String()); };
+void homePage(AsyncWebServerRequest* request)
+{
+  LOG_DEBUG("HTML home page reached.");
+  request->send(LittleFS, "/wifi.html", String());
+};
 
 void fetchWifiNetworks(AsyncWebServerRequest* request)
 {
+  LOG_DEBUG("Endpoint to fetch Wifi Networks reached.");
   String output;
   JsonDocument doc;
   JsonArray array = doc.to<JsonArray>();
@@ -61,233 +71,97 @@ void fetchWifiNetworks(AsyncWebServerRequest* request)
 
 void fetchAllRemotes(AsyncWebServerRequest* request)
 {
-  String output;
-  JsonDocument doc;
-  JsonArray array = doc.to<JsonArray>();
-
-  Remote remotes[MAX_REMOTES];
-  database.getAllRemotes(remotes);
-
-  for (int i = 0; i < MAX_REMOTES; i++)
+  LOG_DEBUG("Endpoint to fetch all remotes reached.");
+  Result result = controller.fetchAllRemotes();
+  if (!result.isSuccess)
   {
-    if (remotes[i].id == 0)
-    {
-      continue;
-    }
-    JsonObject object = array.createNestedObject();
-    object["id"] = remotes[i].id;
-    object["rolling_code"] = remotes[i].rollingCode;
-    object["name"] = remotes[i].name;
+    request->send(400, "application/json", "{\"message\":\"" + result.error + "\"}");
+    return;
   }
-  serializeJson(doc, output);
-  request->send(200, "application/json", output);
+  request->send(200, "application/json", result.data);
 };
 
 void createRemote(AsyncWebServerRequest* request, JsonVariant& json)
 {
-  LOG_INFO("Handle remote creation.");
-  const JsonObject& data = json.as<JsonObject>();
-  const char* name = data["name"];
+  LOG_DEBUG("Endpoint to create a remote reached.");
+  const JsonObject& payload = json.as<JsonObject>();
+  const char* name = payload["name"];
 
-  if (name == nullptr)
+  Result result = controller.createRemote(name);
+
+  if (!result.isSuccess)
   {
-    LOG_ERROR("The name of the remote should be specified.");
-    request->send(
-        400, "application/json", "{\"message\":\"The name of the remote should be specified.\"}");
+    request->send(400, "application/json", "{\"message\":\"" + result.error + "\"}");
     return;
   }
-  if (strlen(name) == 0)
-  {
-    LOG_ERROR("The name of the remote cannot be empty.");
-    request->send(
-        400, "application/json", "{\"message\":\"The name of the remote cannot be empty.\"}");
-    return;
-  }
-
-  Remote remote = database.createRemote(name);
-
-  if (remote.id == 0)
-  {
-    LOG_ERROR("The created remote is an empty remote.");
-    request->send(
-        400, "application/json", "{\"message\":\"No space left on the device for a new remote.\"}");
-    return;
-  }
-
-  String response;
-  JsonDocument doc;
-  JsonObject object = doc.to<JsonObject>();
-  object["remote_id"] = remote.id;
-  object["rolling_code"] = remote.rollingCode;
-  object["name"] = remote.name;
-  serializeJson(object, response);
-  request->send(201, "application/json", response);
+  request->send(201, "application/json", result.data);
 };
 
 void deleteRemote(AsyncWebServerRequest* request, JsonVariant& json)
 {
-  LOG_INFO("Handle remote deletion.");
-  const JsonObject& data = json.as<JsonObject>();
-  const unsigned long id = data["remote_id"];
-  if (id == 0)
+  LOG_DEBUG("Endpoint to delete a remote reached.");
+  const JsonObject& payload = json.as<JsonObject>();
+  const unsigned long id = payload["remote_id"];
+
+  Result result = controller.deleteRemote(id);
+
+  if (!result.isSuccess)
   {
-    LOG_ERROR("The remote id not specified.");
-    request->send(400, "application/json", "{\"message\":\"The remote id should be specified.\"}");
+    request->send(400, "application/json", "{\"message\":\"" + result.error + "\"}");
     return;
   }
-  bool result = database.deleteRemote(id);
-  if (!result)
-  {
-    LOG_ERROR("The given remote doesn't exist in the database.");
-    request->send(
-        400, "application/json", "{\"message\":\"The remote with the given id doesn't exist.\"}");
-    return;
-  }
-  request->send(200, "application/json", "{\"message\":\"The remote has been deleted.\"}");
+  request->send(201, "application/json", "{\"message\":\"The remote has been deleted.\"}");
 }
 
 void updateWifiConfiguration(AsyncWebServerRequest* request, JsonVariant& json)
 {
-  LOG_INFO("Handle update Wifi Configuration");
+  LOG_DEBUG("Endpoint to update the Wifi Wonfiguration reached.");
   const JsonObject& data = json.as<JsonObject>();
   const char* ssid = data["ssid"];
   const char* password = data["password"];
 
-  if (ssid == nullptr)
+  Result result = controller.updateNetworkConfiguration(ssid, password);
+  if (!result.isSuccess)
   {
-    LOG_ERROR("The ssid cannot be empty.");
-    request->send(400, "application/json", "{\"message\":\"The ssid should be specified.\"}");
+    request->send(400, "application/json", "{\"message\":\"" + result.error + "\"}");
     return;
   }
-
-  if (strlen(ssid) == 0)
-  {
-    LOG_ERROR("The ssid cannot be empty.");
-    request->send(400, "application/json", "{\"message\":\"The ssid cannot be empty.\"}");
-    return;
-  }
-
-  NetworkConfiguration networkConfig;
-  strcpy(networkConfig.ssid, ssid);
-
-  if (password == nullptr)
-  {
-    LOG_DEBUG("No password provided. Probably a free hotspot.");
-  }
-  else
-  {
-    strcpy(networkConfig.password, password);
-  }
-
-  database.setNetworkConfiguration(networkConfig);
-  request->send(
-      200, "application/json", "{\"message\":\"The WiFi configuration has been updated.\"}");
+  request->send(201, "application/json", result.data);
 };
 
 void updateRemote(AsyncWebServerRequest* request, JsonVariant& json)
 {
-  LOG_INFO("Handle update remote");
+  LOG_DEBUG("Endpoint to update a remote reached.");
   const JsonObject& payload = json.as<JsonObject>();
-
   const unsigned long id = payload["remote_id"];
-
-  if (id == 0)
-  {
-    LOG_ERROR("The remote id not specified.");
-    request->send(400, "application/json", "{\"message\":\"The remote id should be specified.\"}");
-    return;
-  }
-
   const JsonObject data = payload["data"];
-
   const char* name = data["name"];
-  // const unsigned int rollingCode = data["rolling_code"]; // Don't permit this for now.
+  const unsigned int rollingCode = data["rolling_code"];
 
-  Remote remote = database.getRemote(id);
-  if (remote.id == 0)
+  Result result = controller.updateRemote(id, name, rollingCode);
+  if (!result.isSuccess)
   {
-    LOG_WARN("The remote doesn't exist. It cannot be updated.");
-    request->send(400, "application/json",
-        "{\"message\":\"The remote doesn't exist. It cannot be updated.\"}");
+    request->send(400, "application/json", "{\"message\":\"" + result.error + "\"}");
     return;
   }
-
-  if (name != nullptr)
-  {
-    if (strlen(name) != 0)
-    {
-      strcpy(remote.name, name);
-    }
-  }
-
-  bool result = database.updateRemote(remote);
-  if (!result)
-  {
-    LOG_ERROR("Failed to update the remote.");
-    request->send(400, "application/json",
-        "{\"message\":\"Something went wrong while updating the remote.\"}");
-    return;
-  }
-  request->send(200, "application/json", "{\"message\":\"The remote has been updated.\"}");
+  request->send(200, "application/json", result.data);
 };
 
 void actionRemote(AsyncWebServerRequest* request, JsonVariant& json)
 {
-  LOG_DEBUG("Handle action remote");
+  LOG_DEBUG("Endpoint to operate an action on a remote reached.");
   const JsonObject& payload = json.as<JsonObject>();
 
   const unsigned long id = payload["remote_id"];
   const char* action = payload["action"];
 
-  if (id == 0)
+  Result result = controller.operateRemote(id, action);
+  if (!result.isSuccess)
   {
-    LOG_ERROR("The remote id is not specified.");
-    request->send(400, "application/json", "{\"message\":\"The remote id should be specified.\"}");
+    request->send(400, "application/json", "{\"message\":\"" + result.error + "\"}");
     return;
   }
-
-  if (action == nullptr)
-  {
-    LOG_ERROR("The action is not specified.");
-    request->send(400, "application/json",
-        "{\"message\":\"The action should be specified. Allowed actions: up, down, stop, pair, "
-        "reset\"}");
-    return;
-  }
-
-  Remote remote = database.getRemote(id);
-  if (remote.id == 0)
-  {
-    LOG_WARN("The remote doesn't exist. No action to do.");
-    request->send(
-        400, "application/json", "{\"message\":\"The remote doesn't exist. No action to do.\"}");
-    return;
-  }
-
-  if (strcmp(action, "up") == 0)
-  {
-  }
-  else if (strcmp(action, "stop") == 0)
-  {
-  }
-  else if (strcmp(action, "down") == 0)
-  {
-  }
-  else if (strcmp(action, "pair") == 0)
-  {
-  }
-  else if (strcmp(action, "reset") == 0)
-  {
-  }
-  else
-  {
-    LOG_WARN("The action is not valid.");
-    request->send(400, "application/json",
-        "{\"message\":\"The action is not valid. Allowed actions: up, down, stop, pair, reset\"}");
-    return;
-  }
-
-  request->send(200, "application/json", "{\"message\":\"OK\"}");
+  request->send(200, "application/json", "{\"message\":\"" + result.data + "\"}");
 };
 
 // ============================================================================
@@ -301,7 +175,7 @@ void setup()
     continue;
 
   // Wait one second to avoid bad chars in serial
-  delay(1000);
+  delay(5000);
 
   // Database Setup
   LOG_INFO("Initializing database...");

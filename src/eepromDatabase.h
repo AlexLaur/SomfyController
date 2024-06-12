@@ -12,7 +12,7 @@ class EEPROMDatabase : public Database
   void init();
 
   NetworkConfiguration getNetworkConfiguration();
-  void setNetworkConfiguration(const NetworkConfiguration& networkConfig);
+  bool setNetworkConfiguration(const NetworkConfiguration& networkConfig);
   void resetNetworkConfiguration();
 
   // CRUD
