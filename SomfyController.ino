@@ -250,55 +250,6 @@ void setup()
 
   // Start the server
   server.begin();
-
-  // TEST
-  //  Network networks[MAX_NETWORK_SCAN];
-  //   wifiClient.getNetworks(networks);
-  //   for (int i = 0; i < sizeof(networks) / sizeof(Network); i++) {
-  //     LOG_INFO(networks[i].SSID);
-  //     LOG_INFO(networks[i].RSSI);
-  //   }
-  // LOG_INFO("TEST CONFIG HERE");
-  // NetworkConfiguration conf = database.getNetworkConfiguration();
-  // LOG_INFO(conf.ssid);
-  // LOG_INFO(conf.password);
-
-  // strcpy(conf.ssid, "foo");
-  // strcpy(conf.password, "bar");
-
-  // database.setNetworkConfiguration(conf);
-
-  // NetworkConfiguration newConf = database.getNetworkConfiguration();
-  // LOG_INFO(newConf.ssid);
-  // LOG_INFO(newConf.password);
-
-  LOG_INFO("TEST REMOTES HERE");
-
-  // database.addRemote("foo");
-  // Remote remote = database.getRemote(REMOTE_BASE_ADDRESS + 10);
-  // remote.rolling_code += 1;
-  // database.updateRemote(remote);
-  // LOG_INFO(remoteb.id);
-  // LOG_INFO(remoteb.name);
-  // LOG_INFO(remoteb.rolling_code);
-
-  // Remote remotesArray[MAX_REMOTES];
-  // Vector<Remote> remotesContainer(remotesArray);
-  // database.getRemotes(remotesContainer);
-  // for (auto element : remotesContainer){
-  //   LOG_INFO(element.id);
-  //   LOG_INFO(element.name);
-  // }
-
-  // LOG_INFO("Print all remotes");
-  // Remote remotes[MAX_REMOTES];
-  // database.getAllRemotes(remotes);
-  // for (int i = 0; i < sizeof(remotes) / sizeof(Remote); i++)
-  // {
-  //   LOG_INFO(remotes[i].id);
-  //   LOG_INFO(remotes[i].rolling_code);
-  //   LOG_INFO(remotes[i].name);
-  // }
 };
 
 void loop() {};
