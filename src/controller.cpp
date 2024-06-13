@@ -198,7 +198,7 @@ Result Controller::updateRemote(
 
 Result Controller::operateRemote(const unsigned long id, const char* action)
 {
-  LOG_DEBUG("Operating a command with the Remote...");
+  LOG_INFO("Operating a command with the Remote", id);
   Result result;
   if (id == 0)
   {
@@ -225,23 +225,36 @@ Result Controller::operateRemote(const unsigned long id, const char* action)
 
   if (strcmp(action, "up") == 0)
   {
-    LOG_DEBUG("Operate 'UP'.");
+    LOG_INFO("Operate 'UP'.");
+
+    result.data = "Command UP sent.";
   }
   else if (strcmp(action, "stop") == 0)
   {
-    LOG_DEBUG("Operate 'STOP'.");
+    LOG_INFO("Operate 'STOP'.");
+
+    result.data = "Command STOP sent.";
   }
   else if (strcmp(action, "down") == 0)
   {
-    LOG_DEBUG("Operate 'DOWN'.");
+    LOG_INFO("Operate 'DOWN'.");
+
+    result.data = "Command DOWN sent.";
   }
   else if (strcmp(action, "pair") == 0)
   {
-    LOG_DEBUG("Operate 'PAIR'.");
+    LOG_INFO("Operate 'PAIR'.");
+
+    result.data = "Command PAIR sent.";
   }
   else if (strcmp(action, "reset") == 0)
   {
-    LOG_DEBUG("Operate 'RESET'.");
+    LOG_INFO("Operate 'RESET'.");
+    remote.rollingCode = 0;
+    this->m_database->updateRemote(remote);
+    result.isSuccess = true;
+    result.data = "Rolling code reseted.";
+    return result;
   }
   else
   {
@@ -251,8 +264,9 @@ Result Controller::operateRemote(const unsigned long id, const char* action)
   }
 
   result.isSuccess = true;
-  result.data = "Command sent.";
-  LOG_DEBUG("Command sent with the remote.");
+  remote.rollingCode += 1; // increment rollingCode
+  this->m_database->updateRemote(remote);
+  LOG_INFO("Command sent through the remote", remote.id);
   return result;
 }
 
