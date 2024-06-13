@@ -23,6 +23,7 @@
 #include "src/controller.h"
 #include "src/wifiClient.h"
 #include "src/wifiAccessPoint.h"
+#include "src/RTSTransmitter.h"
 #include "src/eepromDatabase.h"
 #include "src/jsonSerializer.h"
 #include "src/dto/result.h"
@@ -33,11 +34,13 @@ EEPROMDatabase database;
 WifiClient wifiClient;
 WifiAccessPoint wifiAP;
 JSONSerializer serializer;
+RTSTransmitter transmitter;
+
 AsyncWebServer server(SERVER_PORT);
 
 Network networks[MAX_NETWORK_SCAN];
 
-Controller controller(&database, &wifiClient, &serializer);
+Controller controller(&database, &wifiClient, &serializer, &transmitter);
 
 // ============================================================================
 // WEBSERVER CALLBACKS
@@ -176,6 +179,10 @@ void setup()
 
   // Wait one second to avoid bad chars in serial
   delay(5000);
+
+  // Open the output for 433.42MHz and 433.92MHz transmitter
+  LOG_INFO("Initializing pin for transmitter...");
+  transmitter.init();
 
   // Database Setup
   LOG_INFO("Initializing database...");

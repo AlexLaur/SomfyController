@@ -9,12 +9,15 @@
 #include "dto/networks.h"
 #include "abstracts/database.h"
 #include "abstracts/serializer.h"
+#include "abstracts/transmitter.h"
 #include "abstracts/networkClient.h"
 
-Controller::Controller(Database* database, NetworkClient* networkClient, Serializer* serializer)
+Controller::Controller(Database* database, NetworkClient* networkClient, Serializer* serializer,
+    Transmitter* transmitter)
     : m_database(database)
     , m_networkClient(networkClient)
     , m_serializer(serializer)
+    , m_transmitter(transmitter)
 {
 }
 
@@ -226,25 +229,25 @@ Result Controller::operateRemote(const unsigned long id, const char* action)
   if (strcmp(action, "up") == 0)
   {
     LOG_INFO("Operate 'UP'.");
-
+    this->m_transmitter->sendUpCmd(remote.id, remote.rollingCode);
     result.data = "Command UP sent.";
   }
   else if (strcmp(action, "stop") == 0)
   {
     LOG_INFO("Operate 'STOP'.");
-
+    this->m_transmitter->sendStopCmd(remote.id, remote.rollingCode);
     result.data = "Command STOP sent.";
   }
   else if (strcmp(action, "down") == 0)
   {
     LOG_INFO("Operate 'DOWN'.");
-
+    this->m_transmitter->sendDownCmd(remote.id, remote.rollingCode);
     result.data = "Command DOWN sent.";
   }
   else if (strcmp(action, "pair") == 0)
   {
     LOG_INFO("Operate 'PAIR'.");
-
+    this->m_transmitter->sendProgCmd(remote.id, remote.rollingCode);
     result.data = "Command PAIR sent.";
   }
   else if (strcmp(action, "reset") == 0)

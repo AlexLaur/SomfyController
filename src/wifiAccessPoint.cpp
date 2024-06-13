@@ -13,6 +13,7 @@ void WifiAccessPoint::startAccessPoint(const char *ssid, const char *password)
     }
     else{
         WiFi.softAP(ssid, password);
+        LOG_DEBUG("Password for AP:", password);
         LOG_DEBUG("Access point with WPA2-PSK (AP) started.");
     }
 };
