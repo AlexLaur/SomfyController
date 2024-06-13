@@ -29,10 +29,9 @@
 
 struct Network
 {
-    char SSID[32];
-    int RSSI;
+  char SSID[32];
+  int RSSI;
 };
-
 
 struct NetworkConfiguration
 {

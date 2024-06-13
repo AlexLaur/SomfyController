@@ -31,7 +31,7 @@
 
 class WifiAccessPoint
 {
-public:
-    void startAccessPoint(const char *ssid, const char *password = NULL);
-    IPAddress getIP();
+  public:
+  void startAccessPoint(const char* ssid, const char* password = NULL);
+  IPAddress getIP();
 };

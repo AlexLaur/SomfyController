@@ -43,5 +43,5 @@ class JSONSerializer : public Serializer
   String serializeNetworks(const Network networks[], int size);
 
   private:
-    void serializeRemote(JsonObject object, const Remote& remote);
+  void serializeRemote(JsonObject object, const Remote& remote);
 };

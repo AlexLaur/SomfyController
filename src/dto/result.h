@@ -31,7 +31,7 @@
 
 struct Result
 {
-    String data = "";
-    String error = "";
-    bool isSuccess = false;
+  String data = "";
+  String error = "";
+  bool isSuccess = false;
 };

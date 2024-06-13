@@ -31,7 +31,7 @@
 
 struct Remote
 {
-    unsigned long id;
-    unsigned int rollingCode;
-    char name[MAX_REMOTE_NAME_LENGTH];
+  unsigned long id;
+  unsigned int rollingCode;
+  char name[MAX_REMOTE_NAME_LENGTH];
 };
