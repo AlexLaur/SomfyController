@@ -14,9 +14,9 @@ class RTSTransmitter : public Transmitter
 
   private:
   byte m_frame[7];
-  byte m_checksum;
 
-  void buildFrame(unsigned long remoteId, unsigned int rollingCode, byte* frame, byte action);
-  void sendCommand(byte* frame, byte sync);
-  void debugFrame(byte* frame, int base);
+  void buildFrame(unsigned long remoteId, unsigned int rollingCode, byte action);
+  void sendCommand(); // Will call sendCommand(sync)
+  void sendCommand(byte sync);
+  void debugBuildedFrame(int base);
 };

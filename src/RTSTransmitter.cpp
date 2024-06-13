@@ -13,9 +13,6 @@
 #define SIG_HIGH GPIO_REG_WRITE(GPIO_OUT_W1TS_ADDRESS, 1 << PORT_TX)
 #define SIG_LOW GPIO_REG_WRITE(GPIO_OUT_W1TC_ADDRESS, 1 << PORT_TX)
 
-byte frame[7];
-byte checksum;
-
 void RTSTransmitter::init()
 {
   pinMode(PORT_TX, OUTPUT);
@@ -25,78 +22,70 @@ void RTSTransmitter::init()
 
 bool RTSTransmitter::sendUpCmd(unsigned long remoteId, unsigned int rollingCode)
 {
-  this->buildFrame(remoteId, rollingCode, frame, BYTE_ACTION_UP);
-  this->sendCommand(frame, 2);
-  for (int i = 0; i < 2; i++)
-  {
-    this->sendCommand(frame, 7);
-  }
+  this->buildFrame(remoteId, rollingCode, BYTE_ACTION_UP);
+  this->sendCommand();
   return true;
 };
 bool RTSTransmitter::sendStopCmd(unsigned long remoteId, unsigned int rollingCode)
 {
-  this->buildFrame(remoteId, rollingCode, frame, BYTE_ACTION_STOP);
-  this->sendCommand(frame, 2);
-  for (int i = 0; i < 2; i++)
-  {
-    this->sendCommand(frame, 7);
-  }
+  this->buildFrame(remoteId, rollingCode, BYTE_ACTION_STOP);
+  this->sendCommand();
   return true;
 };
 bool RTSTransmitter::sendDownCmd(unsigned long remoteId, unsigned int rollingCode)
 {
-  this->buildFrame(remoteId, rollingCode, frame, BYTE_ACTION_DOWN);
-  this->sendCommand(frame, 2);
-  for (int i = 0; i < 2; i++)
-  {
-    this->sendCommand(frame, 7);
-  }
+  this->buildFrame(remoteId, rollingCode, BYTE_ACTION_DOWN);
+  this->sendCommand();
   return true;
 };
 bool RTSTransmitter::sendProgCmd(unsigned long remoteId, unsigned int rollingCode)
 {
-  this->buildFrame(remoteId, rollingCode, frame, BYTE_ACTION_PROG);
-  this->sendCommand(frame, 2);
-  for (int i = 0; i < 2; i++)
-  {
-    this->sendCommand(frame, 7);
-  }
+  this->buildFrame(remoteId, rollingCode, BYTE_ACTION_PROG);
+  this->sendCommand();
   return true;
 };
 
 // PRIVATE
-void RTSTransmitter::buildFrame(
-    unsigned long remoteId, unsigned int rollingCode, byte* frame, byte action)
+void RTSTransmitter::buildFrame(unsigned long remoteId, unsigned int rollingCode, byte action)
 {
-  frame[0] = 0xA7;
-  frame[1] = action << 4;
-  frame[2] = rollingCode >> 8;
-  frame[3] = rollingCode;
-  frame[4] = remoteId >> 16;
-  frame[5] = remoteId >> 8;
-  frame[6] = remoteId;
+  this->m_frame[0] = 0xA7;
+  this->m_frame[1] = action << 4;
+  this->m_frame[2] = rollingCode >> 8;
+  this->m_frame[3] = rollingCode;
+  this->m_frame[4] = remoteId >> 16;
+  this->m_frame[5] = remoteId >> 8;
+  this->m_frame[6] = remoteId;
 
   byte checksum = 0;
   for (byte i = 0; i < 7; i++)
   {
-    checksum = checksum ^ frame[i] ^ (frame[i] >> 4);
+    checksum = checksum ^ this->m_frame[i] ^ (this->m_frame[i] >> 4);
   }
   checksum &= 0b1111;
 
-  frame[1] |= checksum;
+  this->m_frame[1] |= checksum;
 
   for (byte i = 1; i < 7; i++)
   {
-    frame[i] ^= frame[i - 1];
+    this->m_frame[i] ^= this->m_frame[i - 1];
   }
 
   // For debug
-  this->debugFrame(frame, HEX);
-  this->debugFrame(frame, BIN);
+  this->debugBuildedFrame(HEX);
+  this->debugBuildedFrame(BIN);
   LOG_DEBUG("Frame builded.");
 };
 
-void RTSTransmitter::sendCommand(byte* frame, byte sync)
+void RTSTransmitter::sendCommand()
+{
+  this->sendCommand(2);
+  for (int i = 0; i < 2; i++)
+  {
+    this->sendCommand(7);
+  }
+}
+
+void RTSTransmitter::sendCommand(byte sync)
 {
   if (sync == 2)
   {
@@ -127,7 +116,7 @@ void RTSTransmitter::sendCommand(byte* frame, byte sync)
   // Data: bits are sent one by one, starting with the MSB.
   for (byte i = 0; i < 56; i++)
   {
-    if (((frame[i / 8] >> (7 - (i % 8))) & 1) == 1)
+    if (((this->m_frame[i / 8] >> (7 - (i % 8))) & 1) == 1)
     {
       SIG_LOW;
       delayMicroseconds(SYMBOL);
@@ -147,12 +136,12 @@ void RTSTransmitter::sendCommand(byte* frame, byte sync)
   delayMicroseconds(30415); // Inter-frame silence
 };
 
-
-void RTSTransmitter::debugFrame(byte* frame, int base){
-    String debugFrame;
+void RTSTransmitter::debugBuildedFrame(int base)
+{
+  String debugFrame;
   for (int i = 0; i < 7; i++)
   {
-    debugFrame += String(frame[i], base);
+    debugFrame += String(this->m_frame[i], base);
     debugFrame += " ";
   }
   debugFrame.toUpperCase();
