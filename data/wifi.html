@@ -4,19 +4,62 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SomfyController</title>
-    <meta name="author" content="Alexandre Laurette">
+    <title>ESP-RTSomfy</title>
+    <meta name="author" content="David Grzyb">
     <meta name="description" content="">
+
     <!-- Tailwind -->
-    <script src="/static/js/tailwindcss-3.4.4.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
 
 </head>
 
 <body class="bg-gray-100 font-family-karla flex">
+
+    <aside class="relative bg-gray-800 bg-sidebar h-screen w-64 hidden sm:block shadow-xl">
+        <div class="p-6">
+            <a href="index.html" class="text-white text-3xl font-semibold uppercase hover:text-gray-300">ESP-RTSomfy</a>
+        </div>
+        <nav class="text-white text-base font-semibold pt-3">
+            <a href="#" class="flex items-center active-nav-link text-white py-4 pl-6 nav-item">
+                <i class="fas fa-tachometer-alt mr-3"></i>
+                Dashboard
+            </a>
+            <a href="#" class="flex items-center text-white opacity-75 hover:opacity-100 py-4 pl-6 nav-item">
+                <i class="fas fa-sticky-note mr-3"></i>
+                Blank Page
+            </a>
+        </nav>
+    </aside>
+
     <div class="w-full flex flex-col h-screen overflow-y-hidden">
+
+        <!-- Mobile Header & Nav -->
+        <header x-data="{ isOpen: false }" class="w-full bg-gray-800 bg-sidebar py-5 px-6 sm:hidden">
+            <div class="flex items-center justify-between">
+                <a href="index.html" class="text-white text-3xl font-semibold uppercase hover:text-gray-300">ESP-RTSomfy</a>
+                <button @click="isOpen = !isOpen" class="text-white text-3xl focus:outline-none">
+                    <i x-show="!isOpen" class="fas fa-bars"></i>
+                    <i x-show="isOpen" class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <!-- Dropdown Nav -->
+            <nav :class="isOpen ? 'flex': 'hidden'" class="flex flex-col pt-4">
+                <a href="#" class="flex items-center active-nav-link text-white py-2 pl-4 nav-item">
+                    <i class="fas fa-tachometer-alt mr-3"></i>
+                    Dashboard
+                </a>
+                <a href="#" class="flex items-center text-white opacity-75 hover:opacity-100 py-2 pl-4 nav-item">
+                    <i class="fas fa-sticky-note mr-3"></i>
+                    Blank Page
+                </a>
+            </nav>
+
+        </header>
+
         <div class="w-full overflow-x-hidden border-t flex flex-col">
+
             <main class="w-full flex-grow p-6">
-                <h1 class="text-3xl text-black pb-6">SomfyController</h1>
                 <div class="w-full">
 
                     <div class="grid grid-cols-1 md:grid-cols-2">
@@ -38,17 +81,8 @@
                                                     Signal</div>
                                             </div>
                                         </div>
-                                        <div class="table-row-group">
-                                            <a href="#" class="table-row">
-                                                <div
-                                                    class="table-cell border-b border-slate-100 dark:border-slate-700 p-4 text-sm leading-none text-gray-600">
-                                                    SSID
-                                                </div>
-                                                <div
-                                                    class="table-cell border-b border-slate-100 dark:border-slate-700 p-4 text-sm leading-none text-gray-600">
-                                                    Signal
-                                                </div>
-                                            </a>
+                                        <div class="table-row-group" id="networks-list">
+
                                         </div>
                                     </div>
                                 </div>
@@ -61,21 +95,21 @@
                             </p>
                             <div class="bg-white p-3">
                                 <div class="overflow-x-auto">
-                                    <form action="/wifi" method="POST">
+                                    <form action="/api/v1/wifi/config" method="POST">
                                         <div class="grid gap-3 mb-3 md:grid-cols-1">
                                             <div>
                                                 <label for="wifi_ssid"
                                                     class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">SSID</label>
                                                 <input type="text" id="wifi_ssid"
                                                     class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                                                    required />
+                                                    maxlength="32" required />
                                             </div>
                                             <div>
                                                 <label for="wifi_password"
                                                     class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Password</label>
                                                 <input type="password" id="wifi_password"
                                                     class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                                                    placeholder="******" required />
+                                                    placeholder="******" maxlength="63" />
                                             </div>
                                             <div>
                                                 <button type="submit"
@@ -86,15 +120,74 @@
                                 </div>
                             </div>
                         </div>
+
+                        <div class="p-2">
+                            <p class="text-xl pb-3 flex items-center">
+                                <i class="fas fa-power-off mr-3"></i> Restart
+                            </p>
+                            <div class="bg-white p-3">
+                                <div class="overflow-x-auto">
+                                    <button class="text-sm leading-none text-gray-600 py-3 px-5 bg-gray-100 rounded hover:bg-gray-200 focus:outline-none">Restart System</button>
+                                </div>
+                            </div>
+                        </div>
+
                     </div>
                 </div>
             </main>
         </div>
     </div>
 
+    <!-- AlpineJS -->
+    <script src="static/js/alpine-2.8.2.min.js" defer></script>
     <!-- Font Awesome -->
-    <script src="/static/js/fontawesome-5.13.0.min.js"></script>
+    <script src="static/js/fontawesome-5.13.0.min.js"></script>
 
+    <script>
+
+        function getRequest(endpoint, onSuccess, onFailed) {
+            fetch(endpoint).then(function (response) {
+                return response.json();
+            }).then(function (data) {
+                if (onSuccess) {
+                    onSuccess(data);
+                }
+            }).catch(function (err) {
+                console.log(err);
+                if (onFailed) {
+                    onFailed();
+                }
+            });
+        }
+
+        function onNetworksFetched(data) {
+            networkListEl = document.getElementById("networks-list");
+            for (const element of data) {
+                networkListEl.innerHTML += `
+                <a href="#" class="table-row network-element" data-ssid="${element.ssid}">
+                    <div
+                        class="table-cell border-b border-slate-100 dark:border-slate-700 p-4 text-sm leading-none text-gray-600">
+                        ${element.ssid}
+                    </div>
+                    <div
+                        class="table-cell border-b border-slate-100 dark:border-slate-700 p-4 text-sm leading-none text-gray-600">
+                        ${element.rssi} dBm
+                    </div>
+                </a>`;
+            }
+
+            document.querySelectorAll('.network-element').forEach(link => {
+                link.addEventListener('click', function (event) {
+                    event.preventDefault();
+                    document.getElementById("wifi_ssid").value = this.dataset.ssid;
+                });
+            });
+        }
+
+        document.addEventListener("DOMContentLoaded", function () {
+            getRequest("http://192.168.1.68/api/v1/wifi/networks", onNetworksFetched);
+        });
+    </script>
 </body>
 
 </html>
