@@ -28,9 +28,9 @@
 #include <DebugLog.h>
 #include <ESP8266WiFi.h>
 
-#include "wifiClient.h"
-#include "dto/networks.h"
-#include "../default_config.h"
+#include <config.h>
+#include <networks.h>
+#include <wifiClient.h>
 
 /**
  * @brief Connect this device to a network

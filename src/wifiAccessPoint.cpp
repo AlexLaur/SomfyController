@@ -28,7 +28,7 @@
 #include <DebugLog.h>
 #include <ESP8266WiFi.h>
 
-#include "wifiAccessPoint.h"
+#include <wifiAccessPoint.h>
 
 void WifiAccessPoint::startAccessPoint(const char* ssid, const char* password)
 {

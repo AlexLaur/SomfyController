@@ -27,14 +27,12 @@
  */
 #include <EEPROM.h>
 
-#include <Vector.h>
 #include <DebugLog.h>
 
-#include "eepromDatabase.h"
-#include "dto/networks.h"
-#include "dto/remote.h"
-
-#include "../default_config.h"
+#include <config.h>
+#include <remote.h>
+#include <networks.h>
+#include <eepromDatabase.h>
 
 /**
  * @brief Initialise the Database in the EEPROM of the ESP

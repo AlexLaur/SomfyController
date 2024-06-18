@@ -28,19 +28,19 @@
 #include <Arduino.h>
 #include <DebugLog.h>
 
-#include "controller.h"
+#include <controller.h>
 
-#include "../default_config.h"
-#include "dto/remote.h"
-#include "dto/result.h"
-#include "dto/networks.h"
-#include "abstracts/database.h"
-#include "abstracts/serializer.h"
-#include "abstracts/transmitter.h"
-#include "abstracts/networkClient.h"
+#include <config.h>
+#include <remote.h>
+#include <result.h>
+#include <networks.h>
+#include <databaseAbs.h>
+#include <serializerAbs.h>
+#include <transmitterAbs.h>
+#include <networkClientAbs.h>
 
-Controller::Controller(Database* database, NetworkClient* networkClient, Serializer* serializer,
-    Transmitter* transmitter)
+Controller::Controller(DatabaseAbstract* database, NetworkClientAbstract* networkClient, SerializerAbstract* serializer,
+    TransmitterAbstract* transmitter)
     : m_database(database)
     , m_networkClient(networkClient)
     , m_serializer(serializer)

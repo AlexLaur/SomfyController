@@ -27,7 +27,8 @@
  */
 #include <Arduino.h>
 #include <DebugLog.h>
-#include "RTSTransmitter.h"
+
+#include <RTSTransmitter.h>
 
 #define PORT_TX D1
 
