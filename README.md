@@ -3,6 +3,16 @@ Control Somfy blinds (with RTS Protocol) througt an Arduino Wemos D1.
 
 It is based from the work of `Nickduino` at [Somfy_Remote](https://github.com/Nickduino/Somfy_Remote)
 
+# TODO
+- [ ] Support non ASCII chars in names ?
+- [ ] Add Room mechanism ?
+- [ ] Add OTA
+- [ ] Better Rest API
+- [ ] What's happen if a neighbor has the same system ? (change base address ?)
+- [ ] MQTT support
+- [ ] Improve HTML part
+- [ ] Create a HA integration
+
 # Installation
 ## Required packages
 

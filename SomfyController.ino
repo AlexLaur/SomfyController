@@ -65,7 +65,7 @@ Controller controller(&database, &wifiClient, &serializer, &transmitter);
 void homePage(AsyncWebServerRequest* request)
 {
   LOG_DEBUG("HTML home page reached.");
-  request->send(LittleFS, "/wifi.html", String());
+  request->send(LittleFS, "/index.html", String());
 };
 
 void fetchWifiNetworks(AsyncWebServerRequest* request)
@@ -129,7 +129,7 @@ void deleteRemote(AsyncWebServerRequest* request, JsonVariant& json)
     request->send(400, "application/json", "{\"message\":\"" + result.error + "\"}");
     return;
   }
-  request->send(201, "application/json", "{\"message\":\"The remote has been deleted.\"}");
+  request->send(200, "application/json", "{\"message\":\"The remote has been deleted.\"}");
 }
 
 void updateWifiConfiguration(AsyncWebServerRequest* request, JsonVariant& json)
@@ -247,6 +247,7 @@ void setup()
 
   // SERVER setup
   // HTML
+  DefaultHeaders::Instance().addHeader("Access-Control-Allow-Origin", "*");
   server.serveStatic("/", LittleFS, "/");
   server.on("/", HTTP_GET, homePage);
   // server.onNotFound(not_found_page);

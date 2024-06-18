@@ -5,11 +5,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ESP-RTSomfy</title>
-    <meta name="author" content="David Grzyb">
+    <meta name="author" content="Laurette Alexandre">
     <meta name="description" content="">
 
     <!-- Tailwind -->
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+    <script src="static/js/tailwindcss-3.4.4.min.js"></script>
 
 </head>
 
@@ -17,16 +17,20 @@
 
     <aside class="relative bg-gray-800 bg-sidebar h-screen w-64 hidden sm:block shadow-xl">
         <div class="p-6">
-            <a href="index.html" class="text-white text-3xl font-semibold uppercase hover:text-gray-300">ESP-RTSomfy</a>
+            <a href="/" class="text-white text-3xl font-semibold uppercase hover:text-gray-300">ESP-RTSomfy</a>
         </div>
         <nav class="text-white text-base font-semibold pt-3">
-            <a href="#" class="flex items-center active-nav-link text-white py-4 pl-6 nav-item">
+            <a href="index.html" class="flex items-center text-white opacity-75 hover:opacity-100 py-2 pl-4 nav-item">
                 <i class="fas fa-tachometer-alt mr-3"></i>
                 Dashboard
             </a>
-            <a href="#" class="flex items-center text-white opacity-75 hover:opacity-100 py-4 pl-6 nav-item">
-                <i class="fas fa-sticky-note mr-3"></i>
-                Blank Page
+            <a href="configuration.html" class="flex items-center active-nav-link text-white py-2 pl-4 nav-item">
+                <i class="fas fa-cogs mr-3"></i>
+                Configuration
+            </a>
+            <a href="api.html" class="flex items-center text-white opacity-75 hover:opacity-100 py-2 pl-4 nav-item">
+                <i class="fas fa-code mr-3"></i>
+                API
             </a>
         </nav>
     </aside>
@@ -36,7 +40,7 @@
         <!-- Mobile Header & Nav -->
         <header x-data="{ isOpen: false }" class="w-full bg-gray-800 bg-sidebar py-5 px-6 sm:hidden">
             <div class="flex items-center justify-between">
-                <a href="index.html" class="text-white text-3xl font-semibold uppercase hover:text-gray-300">ESP-RTSomfy</a>
+                <a href="/" class="text-white text-3xl font-semibold uppercase hover:text-gray-300">ESP-RTSomfy</a>
                 <button @click="isOpen = !isOpen" class="text-white text-3xl focus:outline-none">
                     <i x-show="!isOpen" class="fas fa-bars"></i>
                     <i x-show="isOpen" class="fas fa-times"></i>
@@ -45,13 +49,17 @@
 
             <!-- Dropdown Nav -->
             <nav :class="isOpen ? 'flex': 'hidden'" class="flex flex-col pt-4">
-                <a href="#" class="flex items-center active-nav-link text-white py-2 pl-4 nav-item">
+                <a href="index.html" class="flex items-center text-white opacity-75 hover:opacity-100 py-2 pl-4 nav-item">
                     <i class="fas fa-tachometer-alt mr-3"></i>
                     Dashboard
                 </a>
-                <a href="#" class="flex items-center text-white opacity-75 hover:opacity-100 py-2 pl-4 nav-item">
-                    <i class="fas fa-sticky-note mr-3"></i>
-                    Blank Page
+                <a href="configuration.html" class="flex items-center active-nav-link text-white py-2 pl-4 nav-item">
+                    <i class="fas fa-cogs mr-3"></i>
+                    Configuration
+                </a>
+                <a href="api.html" class="flex items-center text-white opacity-75 hover:opacity-100 py-2 pl-4 nav-item">
+                    <i class="fas fa-code mr-3"></i>
+                    API
                 </a>
             </nav>
 
@@ -82,7 +90,6 @@
                                             </div>
                                         </div>
                                         <div class="table-row-group" id="networks-list">
-
                                         </div>
                                     </div>
                                 </div>
@@ -95,19 +102,19 @@
                             </p>
                             <div class="bg-white p-3">
                                 <div class="overflow-x-auto">
-                                    <form action="/api/v1/wifi/config" method="POST">
+                                    <form action="" method="POST" id="network-config-form">
                                         <div class="grid gap-3 mb-3 md:grid-cols-1">
                                             <div>
-                                                <label for="wifi_ssid"
+                                                <label for="wifi-ssid"
                                                     class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">SSID</label>
-                                                <input type="text" id="wifi_ssid"
+                                                <input type="text" id="wifi-ssid"
                                                     class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                                                     maxlength="32" required />
                                             </div>
                                             <div>
-                                                <label for="wifi_password"
+                                                <label for="wifi-password"
                                                     class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Password</label>
-                                                <input type="password" id="wifi_password"
+                                                <input type="password" id="wifi-password"
                                                     class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                                                     placeholder="******" maxlength="63" />
                                             </div>
@@ -127,7 +134,9 @@
                             </p>
                             <div class="bg-white p-3">
                                 <div class="overflow-x-auto">
-                                    <button class="text-sm leading-none text-gray-600 py-3 px-5 bg-gray-100 rounded hover:bg-gray-200 focus:outline-none">Restart System</button>
+                                    <button
+                                        class="text-sm leading-none text-gray-600 py-3 px-5 bg-gray-100 rounded hover:bg-gray-200 focus:outline-none" id="restart-system-btn">Restart
+                                        System</button>
                                 </div>
                             </div>
                         </div>
@@ -142,50 +151,20 @@
     <script src="static/js/alpine-2.8.2.min.js" defer></script>
     <!-- Font Awesome -->
     <script src="static/js/fontawesome-5.13.0.min.js"></script>
+    <!-- Custom Scripts -->
+    <script src="static/js/esprtsomfy.js"></script>
 
     <script>
-
-        function getRequest(endpoint, onSuccess, onFailed) {
-            fetch(endpoint).then(function (response) {
-                return response.json();
-            }).then(function (data) {
-                if (onSuccess) {
-                    onSuccess(data);
-                }
-            }).catch(function (err) {
-                console.log(err);
-                if (onFailed) {
-                    onFailed();
-                }
-            });
-        }
-
-        function onNetworksFetched(data) {
-            networkListEl = document.getElementById("networks-list");
-            for (const element of data) {
-                networkListEl.innerHTML += `
-                <a href="#" class="table-row network-element" data-ssid="${element.ssid}">
-                    <div
-                        class="table-cell border-b border-slate-100 dark:border-slate-700 p-4 text-sm leading-none text-gray-600">
-                        ${element.ssid}
-                    </div>
-                    <div
-                        class="table-cell border-b border-slate-100 dark:border-slate-700 p-4 text-sm leading-none text-gray-600">
-                        ${element.rssi} dBm
-                    </div>
-                </a>`;
-            }
-
-            document.querySelectorAll('.network-element').forEach(link => {
-                link.addEventListener('click', function (event) {
-                    event.preventDefault();
-                    document.getElementById("wifi_ssid").value = this.dataset.ssid;
-                });
-            });
-        }
-
         document.addEventListener("DOMContentLoaded", function () {
-            getRequest("http://192.168.1.68/api/v1/wifi/networks", onNetworksFetched);
+            // Get all networks
+            loadNetworks();
+            // Connect onSubmit for forms
+            const networkConfigForm = document.getElementById("network-config-form");
+            networkConfigForm.setAttribute("action", endpointNetworkUpdate);
+            networkConfigForm.addEventListener("submit", (e) => { onNetworkConfigFormSubmited(e) });
+
+            const restartButton = document.getElementById("restart-system-btn");
+            restartButton.addEventListener("click", (e) => { onRestartButtonClicked(e) });
         });
     </script>
 </body>
