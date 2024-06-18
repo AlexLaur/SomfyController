@@ -61,7 +61,6 @@ Controller controller(&database, &wifiClient, &serializer, &transmitter);
 // ============================================================================
 void homePage(AsyncWebServerRequest* request)
 {
-  Serial.println("here");
   LOG_DEBUG("HTML home page reached.");
   request->send(LittleFS, "/index.html", String());
 };
