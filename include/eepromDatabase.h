@@ -1,7 +1,7 @@
 /**
- * @file default_config.h
+ * @file eepromDatabase.h
  * @author Laurette Alexandre
- * @brief Configuration for SOMFY Controller.
+ * @brief Header of EEPROM database storage system.
  * @version 2.0.0
  * @date 2024-06-06
  *
@@ -27,16 +27,30 @@
  */
 #pragma once
 
-const char AP_SSID[] = "SomfyController Fallback Hotspot";
-const char AP_PASSWORD[] = "5cKErSRCyQzy";
+#include <networks.h>
+#include <remote.h>
+#include <databaseAbs.h>
 
-const int SERVER_PORT = 80;
+class EEPROMDatabase : public DatabaseAbstract
+{
+  public:
+  void init();
 
-const unsigned short MAX_NETWORK_SCAN = 15;
+  NetworkConfiguration getNetworkConfiguration();
+  bool setNetworkConfiguration(const NetworkConfiguration& networkConfig);
+  void resetNetworkConfiguration();
 
-// Only 16 chars for the name.
-// Warning: Increase with value will take more space in the database.
-// If some remotes exists. These will be erase.
-const unsigned short MAX_REMOTE_NAME_LENGTH = 16;
-const unsigned short MAX_REMOTES = 16;
-const unsigned long REMOTE_BASE_ADDRESS = 0x100000;
+  // CRUD
+  Remote createRemote(const char* name);
+  void getAllRemotes(Remote remotes[]);
+  Remote getRemote(const unsigned long& id);
+  bool updateRemote(const Remote& remote);
+  bool deleteRemote(const unsigned long& id);
+
+  private:
+  int m_networkConfigAddressStart = 0;
+  int m_remotesAddressStart = sizeof(NetworkConfiguration);
+
+  bool stringIsAscii(const char* data);
+  int getRemoteIndex(const unsigned long& id);
+};

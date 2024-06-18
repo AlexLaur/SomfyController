@@ -1,7 +1,7 @@
 /**
- * @file serializer.h
+ * @file wifiClient.h
  * @author Laurette Alexandre
- * @brief Header of Serializer abstraction.
+ * @brief Header for wifi client.
  * @version 2.0.0
  * @date 2024-06-06
  *
@@ -27,15 +27,16 @@
  */
 #pragma once
 
-#include <Arduino.h>
-#include "../dto/remote.h"
-#include "../dto/networks.h"
+#include <ESP8266WiFi.h>
+#include <networks.h>
+#include <networkClientAbs.h>
 
-class Serializer
+class WifiClient : public NetworkClientAbstract
 {
   public:
-  virtual String serializeRemote(const Remote& remote) = 0;
-  virtual String serializeRemotes(const Remote remotes[], int size) = 0;
-  virtual String serializeNetworkConfig(const NetworkConfiguration& networkConfig) = 0;
-  virtual String serializeNetworks(const Network networks[], int size) = 0;
+  bool connect(const NetworkConfiguration& conf);
+  bool connect(const char* ssid, const char* password);
+  IPAddress getIP();
+  bool isConnected();
+  void getNetworks(Network networks[]);
 };

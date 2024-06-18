@@ -1,7 +1,7 @@
 /**
- * @file RTSTransmitter.h
+ * @file config.h
  * @author Laurette Alexandre
- * @brief Header for RTS Protocol.
+ * @brief Configuration for SOMFY Controller.
  * @version 2.0.0
  * @date 2024-06-06
  *
@@ -27,23 +27,16 @@
  */
 #pragma once
 
-#include <Arduino.h>
-#include "abstracts/transmitter.h"
+const char AP_SSID[] = "SomfyController Fallback Hotspot";
+const char AP_PASSWORD[] = "5cKErSRCyQzy";
 
-class RTSTransmitter : public Transmitter
-{
-  public:
-  void init();
-  bool sendUpCmd(unsigned long remoteId, unsigned int rollingCode);
-  bool sendStopCmd(unsigned long remoteId, unsigned int rollingCode);
-  bool sendDownCmd(unsigned long remoteId, unsigned int rollingCode);
-  bool sendProgCmd(unsigned long remoteId, unsigned int rollingCode);
+const int SERVER_PORT = 80;
 
-  private:
-  byte m_frame[7];
+const unsigned short MAX_NETWORK_SCAN = 15;
 
-  void buildFrame(unsigned long remoteId, unsigned int rollingCode, byte action);
-  void sendCommand(); // Will call sendCommand(sync)
-  void sendCommand(byte sync);
-  void debugBuildedFrame(int base);
-};
+// Only 16 chars for the name.
+// Warning: Increase with value will take more space in the database.
+// If some remotes exists. These will be erase.
+const unsigned short MAX_REMOTE_NAME_LENGTH = 16;
+const unsigned short MAX_REMOTES = 16;
+const unsigned long REMOTE_BASE_ADDRESS = 0x100000;

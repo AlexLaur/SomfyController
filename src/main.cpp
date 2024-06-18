@@ -36,7 +36,16 @@
 #include <ESPAsyncTCP.h>
 #include <ESPAsyncWebServer.h>
 
+#include <config.h>
+#include <remote.h>
 #include <networks.h>
+#include <controller.h>
+#include <wifiClient.h>
+#include <wifiAccessPoint.h>
+#include <RTSTransmitter.h>
+#include <eepromDatabase.h>
+#include <jsonSerializer.h>
+
 
 void setup()
 {
@@ -50,8 +59,4 @@ void setup()
 void loop()
 {
   // put your main code here, to run repeatedly:
-  LOG_INFO("test");
-
-  Network network = {"foo", 1};
-  LOG_INFO(network.SSID);
 }

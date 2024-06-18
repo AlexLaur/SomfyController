@@ -1,7 +1,7 @@
 /**
- * @file database.h
+ * @file jsonSerializer.h
  * @author Laurette Alexandre
- * @brief Header of database abstraction.
+ * @brief Header for JSON serialization.
  * @version 2.0.0
  * @date 2024-06-06
  *
@@ -27,23 +27,21 @@
  */
 #pragma once
 
-#include "../wifiClient.h"
-#include "../dto/networks.h"
-#include "../dto/remote.h"
+#include <Arduino.h>
+#include <ArduinoJson.h>
 
-class Database
+#include <remote.h>
+#include <networks.h>
+#include <serializerAbs.h>
+
+class JSONSerializer : public SerializerAbstract
 {
   public:
-  virtual void init() = 0;
+  String serializeRemote(const Remote& remote);
+  String serializeRemotes(const Remote remotes[], int size);
+  String serializeNetworkConfig(const NetworkConfiguration& networkConfig);
+  String serializeNetworks(const Network networks[], int size);
 
-  virtual NetworkConfiguration getNetworkConfiguration() = 0;
-  virtual bool setNetworkConfiguration(const NetworkConfiguration& networkConfig) = 0;
-  virtual void resetNetworkConfiguration() = 0;
-
-  // CRUD methods for remote
-  virtual Remote createRemote(const char* name) = 0;
-  virtual void getAllRemotes(Remote remotes[]) = 0;
-  virtual Remote getRemote(const unsigned long& id) = 0;
-  virtual bool updateRemote(const Remote& remote) = 0;
-  virtual bool deleteRemote(const unsigned long& id) = 0;
+  private:
+  void serializeRemote(JsonObject object, const Remote& remote);
 };

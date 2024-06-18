@@ -1,7 +1,7 @@
 /**
- * @file transmitter.h
+ * @file RTSTransmitter.h
  * @author Laurette Alexandre
- * @brief Header of Transmitter abstraction.
+ * @brief Header for RTS Protocol.
  * @version 2.0.0
  * @date 2024-06-06
  *
@@ -27,11 +27,23 @@
  */
 #pragma once
 
-class Transmitter
+#include <Arduino.h>
+#include <transmitterAbs.h>
+
+class RTSTransmitter : public TransmitterAbstract
 {
   public:
-  virtual bool sendUpCmd(unsigned long remoteId, unsigned int rollingCode) = 0;
-  virtual bool sendStopCmd(unsigned long remoteId, unsigned int rollingCode) = 0;
-  virtual bool sendDownCmd(unsigned long remoteId, unsigned int rollingCode) = 0;
-  virtual bool sendProgCmd(unsigned long remoteId, unsigned int rollingCode) = 0;
+  void init();
+  bool sendUpCmd(unsigned long remoteId, unsigned int rollingCode);
+  bool sendStopCmd(unsigned long remoteId, unsigned int rollingCode);
+  bool sendDownCmd(unsigned long remoteId, unsigned int rollingCode);
+  bool sendProgCmd(unsigned long remoteId, unsigned int rollingCode);
+
+  private:
+  byte m_frame[7];
+
+  void buildFrame(unsigned long remoteId, unsigned int rollingCode, byte action);
+  void sendCommand(); // Will call sendCommand(sync)
+  void sendCommand(byte sync);
+  void debugBuildedFrame(int base);
 };

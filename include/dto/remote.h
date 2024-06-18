@@ -1,7 +1,7 @@
 /**
- * @file jsonSerializer.h
+ * @file remote.h
  * @author Laurette Alexandre
- * @brief Header for JSON serialization.
+ * @brief Header for Remote DTO.
  * @version 2.0.0
  * @date 2024-06-06
  *
@@ -27,21 +27,11 @@
  */
 #pragma once
 
-#include <Arduino.h>
-#include <ArduinoJson.h>
+#include <config.h>
 
-#include "dto/remote.h"
-#include "dto/networks.h"
-#include "abstracts/serializer.h"
-
-class JSONSerializer : public Serializer
+struct Remote
 {
-  public:
-  String serializeRemote(const Remote& remote);
-  String serializeRemotes(const Remote remotes[], int size);
-  String serializeNetworkConfig(const NetworkConfiguration& networkConfig);
-  String serializeNetworks(const Network networks[], int size);
-
-  private:
-  void serializeRemote(JsonObject object, const Remote& remote);
+  unsigned long id;
+  unsigned int rollingCode;
+  char name[MAX_REMOTE_NAME_LENGTH];
 };
