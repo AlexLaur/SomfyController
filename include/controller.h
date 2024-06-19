@@ -1,7 +1,7 @@
 /**
- * @file eepromDatabase.h
+ * @file controller.h
  * @author Laurette Alexandre
- * @brief Header of EEPROM database storage system.
+ * @brief Header of the controller of the application.
  * @version 2.0.0
  * @date 2024-06-06
  *
@@ -27,32 +27,30 @@
  */
 #pragma once
 
-#include <Vector.h>
+#include <result.h>
+#include <databaseAbs.h>
+#include <serializerAbs.h>
+#include <transmitterAbs.h>
+#include <networkClientAbs.h>
 
-#include "abstracts/database.h"
-#include "dto/networks.h"
-#include "dto/remote.h"
-
-class EEPROMDatabase : public Database
+class Controller
 {
   public:
-  void init();
+  Controller(DatabaseAbstract* database, NetworkClientAbstract* networkClient, SerializerAbstract* serializer,
+      TransmitterAbstract* transmitter);
 
-  NetworkConfiguration getNetworkConfiguration();
-  bool setNetworkConfiguration(const NetworkConfiguration& networkConfig);
-  void resetNetworkConfiguration();
+  Result fetchRemote(const unsigned long id);
+  Result fetchAllRemotes();
+  Result createRemote(const char* name);
+  Result deleteRemote(const unsigned long id);
+  Result updateRemote(const unsigned long id, const char* name, const unsigned int rollingCode);
+  Result operateRemote(const unsigned long id, const char* action);
 
-  // CRUD
-  Remote createRemote(const char* name);
-  void getAllRemotes(Remote remotes[]);
-  Remote getRemote(const unsigned long& id);
-  bool updateRemote(const Remote& remote);
-  bool deleteRemote(const unsigned long& id);
+  Result updateNetworkConfiguration(const char* ssid, const char* password);
 
   private:
-  int m_networkConfigAddressStart = 0;
-  int m_remotesAddressStart = sizeof(NetworkConfiguration);
-
-  bool stringIsAscii(const char* data);
-  int getRemoteIndex(const unsigned long& id);
+  DatabaseAbstract* m_database;
+  NetworkClientAbstract* m_networkClient;
+  SerializerAbstract* m_serializer;
+  TransmitterAbstract* m_transmitter;
 };

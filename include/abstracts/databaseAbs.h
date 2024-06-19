@@ -1,7 +1,7 @@
 /**
- * @file networkClient.h
+ * @file database.h
  * @author Laurette Alexandre
- * @brief Header of networkClient abstraction.
+ * @brief Header of database abstraction.
  * @version 2.0.0
  * @date 2024-06-06
  *
@@ -27,15 +27,22 @@
  */
 #pragma once
 
-#include <ESP8266WiFi.h> // TODO: Should be removed from here
-#include "../dto/networks.h"
+#include <networks.h>
+#include <remote.h>
 
-class NetworkClient
+class DatabaseAbstract
 {
   public:
-  virtual bool connect(const NetworkConfiguration& conf) = 0;
-  virtual bool connect(const char* ssid, const char* password) = 0;
-  virtual IPAddress getIP() = 0; // TODO: to specific to WIFI, should be changed
-  virtual bool isConnected() = 0;
-  virtual void getNetworks(Network networks[]) = 0;
+  virtual void init() = 0;
+
+  virtual NetworkConfiguration getNetworkConfiguration() = 0;
+  virtual bool setNetworkConfiguration(const NetworkConfiguration& networkConfig) = 0;
+  virtual void resetNetworkConfiguration() = 0;
+
+  // CRUD methods for remote
+  virtual Remote createRemote(const char* name) = 0;
+  virtual void getAllRemotes(Remote remotes[]) = 0;
+  virtual Remote getRemote(const unsigned long& id) = 0;
+  virtual bool updateRemote(const Remote& remote) = 0;
+  virtual bool deleteRemote(const unsigned long& id) = 0;
 };

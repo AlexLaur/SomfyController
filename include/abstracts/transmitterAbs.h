@@ -1,7 +1,7 @@
 /**
- * @file wifiClient.h
+ * @file transmitter.h
  * @author Laurette Alexandre
- * @brief Header for wifi client.
+ * @brief Header of Transmitter abstraction.
  * @version 2.0.0
  * @date 2024-06-06
  *
@@ -27,16 +27,11 @@
  */
 #pragma once
 
-#include <ESP8266WiFi.h>
-#include "abstracts/networkClient.h"
-#include "dto/networks.h"
-
-class WifiClient : public NetworkClient
+class TransmitterAbstract
 {
   public:
-  bool connect(const NetworkConfiguration& conf);
-  bool connect(const char* ssid, const char* password);
-  IPAddress getIP();
-  bool isConnected();
-  void getNetworks(Network networks[]);
+  virtual bool sendUpCmd(unsigned long remoteId, unsigned int rollingCode) = 0;
+  virtual bool sendStopCmd(unsigned long remoteId, unsigned int rollingCode) = 0;
+  virtual bool sendDownCmd(unsigned long remoteId, unsigned int rollingCode) = 0;
+  virtual bool sendProgCmd(unsigned long remoteId, unsigned int rollingCode) = 0;
 };

@@ -1,7 +1,7 @@
 /**
- * @file remote.h
+ * @file serializer.h
  * @author Laurette Alexandre
- * @brief Header for Remote DTO.
+ * @brief Header of Serializer abstraction.
  * @version 2.0.0
  * @date 2024-06-06
  *
@@ -27,11 +27,15 @@
  */
 #pragma once
 
-#include "../../default_config.h"
+#include <Arduino.h>
+#include <remote.h>
+#include <networks.h>
 
-struct Remote
+class SerializerAbstract
 {
-  unsigned long id;
-  unsigned int rollingCode;
-  char name[MAX_REMOTE_NAME_LENGTH];
+  public:
+  virtual String serializeRemote(const Remote& remote) = 0;
+  virtual String serializeRemotes(const Remote remotes[], int size) = 0;
+  virtual String serializeNetworkConfig(const NetworkConfiguration& networkConfig) = 0;
+  virtual String serializeNetworks(const Network networks[], int size) = 0;
 };

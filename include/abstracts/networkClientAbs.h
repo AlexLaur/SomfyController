@@ -1,7 +1,7 @@
 /**
- * @file controller.h
+ * @file networkClient.h
  * @author Laurette Alexandre
- * @brief Header of the controller of the application.
+ * @brief Header of networkClient abstraction.
  * @version 2.0.0
  * @date 2024-06-06
  *
@@ -27,30 +27,15 @@
  */
 #pragma once
 
-#include "dto/result.h"
-#include "abstracts/database.h"
-#include "abstracts/serializer.h"
-#include "abstracts/transmitter.h"
-#include "abstracts/networkClient.h"
+#include <ESP8266WiFi.h> // TODO: Should be removed from here
+#include <networks.h>
 
-class Controller
+class NetworkClientAbstract
 {
   public:
-  Controller(Database* database, NetworkClient* networkClient, Serializer* serializer,
-      Transmitter* transmitter);
-
-  Result fetchRemote(const unsigned long id);
-  Result fetchAllRemotes();
-  Result createRemote(const char* name);
-  Result deleteRemote(const unsigned long id);
-  Result updateRemote(const unsigned long id, const char* name, const unsigned int rollingCode);
-  Result operateRemote(const unsigned long id, const char* action);
-
-  Result updateNetworkConfiguration(const char* ssid, const char* password);
-
-  private:
-  Database* m_database;
-  NetworkClient* m_networkClient;
-  Serializer* m_serializer;
-  Transmitter* m_transmitter;
+  virtual bool connect(const NetworkConfiguration& conf) = 0;
+  virtual bool connect(const char* ssid, const char* password) = 0;
+  virtual IPAddress getIP() = 0; // TODO: to specific to WIFI, should be changed
+  virtual bool isConnected() = 0;
+  virtual void getNetworks(Network networks[]) = 0;
 };

@@ -28,10 +28,10 @@
 #include <Arduino.h>
 #include <ArduinoJson.h>
 
-#include "dto/remote.h"
-#include "dto/networks.h"
+#include <remote.h>
+#include <networks.h>
 
-#include "jsonSerializer.h"
+#include <jsonSerializer.h>
 
 String JSONSerializer::serializeRemote(const Remote& remote)
 {
