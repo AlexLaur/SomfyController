@@ -204,6 +204,7 @@ Result Controller::updateRemote(
   {
     LOG_DEBUG("The rolling code of the remote will be updated.");
     // TODO. We want this ?
+    LOG_WARN("The rolling code cannot be updated yet.");
   }
   else
   {
@@ -239,6 +240,12 @@ Result Controller::operateRemote(const unsigned long id, const char* action)
 
   if (action == nullptr)
   {
+    LOG_ERROR("The action should be specified. Allowed actions: up, down, stop, pair, reset.");
+    result.error = "The action should be specified. Allowed actions: up, down, stop, pair, reset.";
+    return result;
+  }
+
+  if (strlen(action) == 0){
     LOG_ERROR("The action should be specified. Allowed actions: up, down, stop, pair, reset.");
     result.error = "The action should be specified. Allowed actions: up, down, stop, pair, reset.";
     return result;
@@ -297,6 +304,18 @@ Result Controller::operateRemote(const unsigned long id, const char* action)
   remote.rollingCode += 1; // increment rollingCode
   this->m_database->updateRemote(remote);
   LOG_INFO("Command sent through the remote", remote.id);
+  return result;
+}
+
+Result Controller::fetchNetworkConfiguration(){
+  LOG_DEBUG("Fetching Network Configuration...");
+  Result result;
+
+  NetworkConfiguration networkConfig = this->m_database->getNetworkConfiguration();
+
+  result.isSuccess = true;
+  String serialized = this->m_serializer->serializeNetworkConfig(networkConfig);
+  result.data = serialized;
   return result;
 }
 

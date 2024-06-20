@@ -23,5 +23,3 @@ int main(int argc, char** argv)
   RUN_TEST(test_foo);
   UNITY_END();
 }
-
-void loop() { }

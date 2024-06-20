@@ -56,7 +56,7 @@ Network networks[MAX_NETWORK_SCAN];
 Controller controller(&database, &wifiClient, &serializer, &transmitter);
 
 // ============================================================================
-// WEBSERVER CALLBACKS
+// WEBSERVER CALLBACKS HTML
 // ============================================================================
 void homePage(AsyncWebServerRequest* request)
 {
@@ -64,9 +64,19 @@ void homePage(AsyncWebServerRequest* request)
   request->send(LittleFS, "/index.html", String());
 };
 
-void fetchWifiNetworks(AsyncWebServerRequest* request)
+// ============================================================================
+// WEBSERVER CALLBACKS RESTAPI
+// ============================================================================
+void handleCoreRestart(AsyncWebServerRequest* request)
 {
-  LOG_DEBUG("Endpoint to fetch Wifi Networks reached.");
+  LOG_INFO("Endpoint to restart module reached.");
+  request->send(200, "application/json", "{\"message\":\"Restarting...\"}");
+  ESP.restart();
+}
+
+void handleFetchWifiNetworks(AsyncWebServerRequest* request)
+{
+  LOG_INFO("Endpoint to fetch Wifi Networks reached.");
   String output;
   JsonDocument doc;
   JsonArray array = doc.to<JsonArray>();
@@ -82,11 +92,49 @@ void fetchWifiNetworks(AsyncWebServerRequest* request)
   }
   serializeJson(doc, output);
   request->send(200, "application/json", output);
-};
+}
 
-void fetchAllRemotes(AsyncWebServerRequest* request)
+void handleFetchWifiConfiguration(AsyncWebServerRequest* request)
 {
-  LOG_DEBUG("Endpoint to fetch all remotes reached.");
+  LOG_INFO("Endpoint to fetch Network Configuration reached.");
+  Result result = controller.fetchNetworkConfiguration();
+  if (!result.isSuccess)
+  {
+    request->send(400, "application/json", "{\"message\":\"" + result.error + "\"}");
+    return;
+  }
+  request->send(200, "application/json", result.data);
+}
+
+void handleUpdateWifiConfiguration(AsyncWebServerRequest* request)
+{
+  LOG_INFO("Endpoint to update the Wifi Wonfiguration reached.");
+
+  String ssid;
+  String password;
+  if (request->hasParam("ssid", true))
+  {
+    AsyncWebParameter* p = request->getParam("ssid", true);
+    ssid = p->value();
+  }
+  if (request->hasParam("password", true))
+  {
+    AsyncWebParameter* p = request->getParam("password", true);
+    password = p->value();
+  }
+
+  Result result = controller.updateNetworkConfiguration(ssid.c_str(), password.c_str());
+  if (!result.isSuccess)
+  {
+    request->send(400, "application/json", "{\"message\":\"" + result.error + "\"}");
+    return;
+  }
+  request->send(201, "application/json", result.data);
+}
+
+void handleFetchAllRemotes(AsyncWebServerRequest* request)
+{
+  LOG_INFO("Endpoint to fetch all remotes reached.");
   Result result = controller.fetchAllRemotes();
   if (!result.isSuccess)
   {
@@ -94,32 +142,77 @@ void fetchAllRemotes(AsyncWebServerRequest* request)
     return;
   }
   request->send(200, "application/json", result.data);
-};
+}
 
-void createRemote(AsyncWebServerRequest* request, JsonVariant& json)
+void handleFetchRemote(AsyncWebServerRequest* request)
 {
-  LOG_DEBUG("Endpoint to create a remote reached.");
-  const JsonObject& payload = json.as<JsonObject>();
-  const char* name = payload["name"];
+  LOG_INFO("Endpoint to fetch a remote reached.");
+  unsigned long remoteId = request->pathArg(0).toInt();
 
-  Result result = controller.createRemote(name);
+  Result result = controller.fetchRemote(remoteId);
+  if (!result.isSuccess)
+  {
+    request->send(400, "application/json", "{\"message\":\"" + result.error + "\"}");
+    return;
+  }
+  request->send(200, "application/json", result.data);
+}
 
+void handleCreateRemote(AsyncWebServerRequest* request)
+{
+  LOG_INFO("Endpoint to create a remote reached.");
+
+  String name;
+  if (request->hasParam("name", true))
+  {
+    AsyncWebParameter* p = request->getParam("name", true);
+    name = p->value();
+  }
+
+  Result result = controller.createRemote(name.c_str());
   if (!result.isSuccess)
   {
     request->send(400, "application/json", "{\"message\":\"" + result.error + "\"}");
     return;
   }
   request->send(201, "application/json", result.data);
-};
+}
 
-void deleteRemote(AsyncWebServerRequest* request, JsonVariant& json)
+void handleUpdateRemote(AsyncWebServerRequest* request)
 {
-  LOG_DEBUG("Endpoint to delete a remote reached.");
-  const JsonObject& payload = json.as<JsonObject>();
-  const unsigned long id = payload["remote_id"];
+  LOG_INFO("Endpoint to update a remote reached.");
+  unsigned long remoteId = request->pathArg(0).toInt();
 
-  Result result = controller.deleteRemote(id);
+  String name;
+  unsigned int rollingCode = 0;
 
+  if (request->hasParam("name", true))
+  {
+    AsyncWebParameter* p = request->getParam("name", true);
+    name = p->value();
+  }
+
+  if (request->hasParam("rolling_code", true))
+  {
+    AsyncWebParameter* p = request->getParam("rolling_code", true);
+    rollingCode = int(p->value().toInt());
+  }
+
+  Result result = controller.updateRemote(remoteId, name.c_str(), rollingCode);
+  if (!result.isSuccess)
+  {
+    request->send(400, "application/json", "{\"message\":\"" + result.error + "\"}");
+    return;
+  }
+  request->send(200, "application/json", result.data);
+}
+
+void handleDeleteRemote(AsyncWebServerRequest* request)
+{
+  LOG_INFO("Endpoint to delete a remote reached.");
+  unsigned long remoteId = request->pathArg(0).toInt();
+
+  Result result = controller.deleteRemote(remoteId);
   if (!result.isSuccess)
   {
     request->send(400, "application/json", "{\"message\":\"" + result.error + "\"}");
@@ -128,56 +221,26 @@ void deleteRemote(AsyncWebServerRequest* request, JsonVariant& json)
   request->send(200, "application/json", "{\"message\":\"The remote has been deleted.\"}");
 }
 
-void updateWifiConfiguration(AsyncWebServerRequest* request, JsonVariant& json)
+void handleActionRemote(AsyncWebServerRequest* request)
 {
-  LOG_DEBUG("Endpoint to update the Wifi Wonfiguration reached.");
-  const JsonObject& data = json.as<JsonObject>();
-  const char* ssid = data["ssid"];
-  const char* password = data["password"];
+  LOG_INFO("Endpoint to operate an action on a remote reached.");
+  unsigned long remoteId = request->pathArg(0).toInt();
 
-  Result result = controller.updateNetworkConfiguration(ssid, password);
-  if (!result.isSuccess)
+  String action;
+  if (request->hasParam("action", true))
   {
-    request->send(400, "application/json", "{\"message\":\"" + result.error + "\"}");
-    return;
+    AsyncWebParameter* p = request->getParam("action", true);
+    action = p->value();
   }
-  request->send(201, "application/json", result.data);
-};
 
-void updateRemote(AsyncWebServerRequest* request, JsonVariant& json)
-{
-  LOG_DEBUG("Endpoint to update a remote reached.");
-  const JsonObject& payload = json.as<JsonObject>();
-  const unsigned long id = payload["remote_id"];
-  const JsonObject data = payload["data"];
-  const char* name = data["name"];
-  const unsigned int rollingCode = data["rolling_code"];
-
-  Result result = controller.updateRemote(id, name, rollingCode);
-  if (!result.isSuccess)
-  {
-    request->send(400, "application/json", "{\"message\":\"" + result.error + "\"}");
-    return;
-  }
-  request->send(200, "application/json", result.data);
-};
-
-void actionRemote(AsyncWebServerRequest* request, JsonVariant& json)
-{
-  LOG_DEBUG("Endpoint to operate an action on a remote reached.");
-  const JsonObject& payload = json.as<JsonObject>();
-
-  const unsigned long id = payload["remote_id"];
-  const char* action = payload["action"];
-
-  Result result = controller.operateRemote(id, action);
+  Result result = controller.operateRemote(remoteId, action.c_str());
   if (!result.isSuccess)
   {
     request->send(400, "application/json", "{\"message\":\"" + result.error + "\"}");
     return;
   }
   request->send(200, "application/json", "{\"message\":\"" + result.data + "\"}");
-};
+}
 
 // ============================================================================
 // SETUP
@@ -247,24 +310,16 @@ void setup()
   // server.onNotFound(not_found_page);
 
   // API REST
-  server.on("/api/v1/wifi/networks", HTTP_GET, fetchWifiNetworks);
-  AsyncCallbackJsonWebHandler* updateWifiConfig
-      = new AsyncCallbackJsonWebHandler("/api/v1/wifi/config", updateWifiConfiguration);
-  server.addHandler(updateWifiConfig);
-
-  server.on("/api/v1/remotes/fetch", HTTP_GET, fetchAllRemotes);
-  AsyncCallbackJsonWebHandler* newRemoteHandler
-      = new AsyncCallbackJsonWebHandler("/api/v1/remotes/create", createRemote);
-  server.addHandler(newRemoteHandler);
-  AsyncCallbackJsonWebHandler* deleteRemoteHandler
-      = new AsyncCallbackJsonWebHandler("/api/v1/remotes/delete", deleteRemote);
-  server.addHandler(deleteRemoteHandler);
-  AsyncCallbackJsonWebHandler* updateRemoteHandler
-      = new AsyncCallbackJsonWebHandler("/api/v1/remotes/update", updateRemote);
-  server.addHandler(updateRemoteHandler);
-  AsyncCallbackJsonWebHandler* actionRemoteHandler
-      = new AsyncCallbackJsonWebHandler("/api/v1/remotes/action", actionRemote);
-  server.addHandler(actionRemoteHandler);
+  server.on("/api/v1/core/restart", HTTP_POST, handleCoreRestart);
+  server.on("/api/v1/wifi/networks", HTTP_GET, handleFetchWifiNetworks);
+  server.on("/api/v1/wifi/config", HTTP_GET, handleFetchWifiConfiguration);
+  server.on("/api/v1/wifi/config", HTTP_POST, handleUpdateWifiConfiguration);
+  server.on("^\\/api/v1/remotes$", HTTP_GET, handleFetchAllRemotes);
+  server.on("^\\/api/v1/remotes$", HTTP_POST, handleCreateRemote);
+  server.on("^\\/api/v1/remotes\\/([0-9]+)$", HTTP_GET, handleFetchRemote);
+  server.on("^\\/api/v1/remotes\\/([0-9]+)$", HTTP_PATCH, handleUpdateRemote);
+  server.on("^\\/api/v1/remotes\\/([0-9]+)$", HTTP_DELETE, handleDeleteRemote);
+  server.on("^\\/api/v1/remotes\\/([0-9]+)\\/action$", HTTP_POST, handleActionRemote);
 
   // Start the server
   server.begin();

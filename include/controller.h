@@ -46,6 +46,7 @@ class Controller
   Result updateRemote(const unsigned long id, const char* name, const unsigned int rollingCode);
   Result operateRemote(const unsigned long id, const char* action);
 
+  Result fetchNetworkConfiguration();
   Result updateNetworkConfiguration(const char* ssid, const char* password);
 
   private:
