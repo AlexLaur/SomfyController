@@ -45,4 +45,7 @@ class DatabaseAbstract
   virtual Remote getRemote(const unsigned long& id) = 0;
   virtual bool updateRemote(const Remote& remote) = 0;
   virtual bool deleteRemote(const unsigned long& id) = 0;
+
+  private:
+  virtual bool migrate() = 0;
 };

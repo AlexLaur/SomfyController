@@ -40,6 +40,8 @@
  */
 void EEPROMDatabase::init()
 {
+  this->migrate();
+
   size_t totalSize = sizeof(NetworkConfiguration) + sizeof(Remote) * MAX_REMOTES;
   LOG_DEBUG("Allocating EEPROM space: ", totalSize);
   EEPROM.begin(totalSize);
@@ -278,4 +280,17 @@ int EEPROMDatabase::getRemoteIndex(const unsigned long& id)
     }
   }
   return -1;
+}
+
+/**
+ * @brief Apply migration on the database.
+ * Usefull for future versions releases if some parts change in the database.
+ *
+ * @return true if the migration succeded
+ * @return false otherwise
+ */
+bool EEPROMDatabase::migrate()
+{
+  LOG_INFO("Apply database migrations...");
+  return true;
 }

@@ -51,6 +51,7 @@ class EEPROMDatabase : public DatabaseAbstract
   int m_networkConfigAddressStart = 0;
   int m_remotesAddressStart = sizeof(NetworkConfiguration);
 
+  bool migrate();
   bool stringIsAscii(const char* data);
   int getRemoteIndex(const unsigned long& id);
 };

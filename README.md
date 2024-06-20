@@ -5,7 +5,6 @@ It is based from the work of `Nickduino` at [Somfy_Remote](https://github.com/Ni
 
 # TODO
 - [ ] Support non ASCII chars in names ?
-- [ ] Add Room mechanism ?
 - [ ] Add OTA
 - [ ] What's happen if a neighbor has the same system ? (change base address ?)
 - [ ] MQTT support
