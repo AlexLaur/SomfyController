@@ -29,12 +29,15 @@
 
 #include <networks.h>
 #include <remote.h>
+#include <systemInfos.h>
 #include <databaseAbs.h>
 
 class EEPROMDatabase : public DatabaseAbstract
 {
   public:
   void init();
+
+  SystemInfos getSystemInfos();
 
   NetworkConfiguration getNetworkConfiguration();
   bool setNetworkConfiguration(const NetworkConfiguration& networkConfig);
@@ -48,8 +51,9 @@ class EEPROMDatabase : public DatabaseAbstract
   bool deleteRemote(const unsigned long& id);
 
   private:
-  int m_networkConfigAddressStart = 0;
-  int m_remotesAddressStart = sizeof(NetworkConfiguration);
+  int m_lastSystemInfosAddressStart = 0;
+  int m_networkConfigAddressStart = sizeof(SystemInfos);
+  int m_remotesAddressStart = sizeof(SystemInfos) + sizeof(NetworkConfiguration);
 
   bool migrate();
   bool stringIsAscii(const char* data);

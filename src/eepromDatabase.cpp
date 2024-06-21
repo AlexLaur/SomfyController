@@ -25,6 +25,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+#include <regex>
 #include <EEPROM.h>
 
 #include <DebugLog.h>
@@ -32,6 +33,7 @@
 #include <config.h>
 #include <remote.h>
 #include <networks.h>
+#include <systemInfos.h>
 #include <eepromDatabase.h>
 
 /**
@@ -40,11 +42,11 @@
  */
 void EEPROMDatabase::init()
 {
-  this->migrate();
-
   size_t totalSize = sizeof(NetworkConfiguration) + sizeof(Remote) * MAX_REMOTES;
   LOG_DEBUG("Allocating EEPROM space: ", totalSize);
   EEPROM.begin(totalSize);
+
+  this->migrate();
 
   // Todo wipe to emptyRemote all corupted remotes
   LOG_DEBUG("Reseting all corrupted remotes...");
@@ -78,8 +80,37 @@ void EEPROMDatabase::init()
       continue;
     }
   }
-  EEPROM.commit();
   LOG_DEBUG("Corrupted Remotes detected and reseted: ", count);
+
+  LOG_DEBUG("Analyse for corrupted version number...");
+  std::regex versionPattern("^[0-9]+\\.[0-9]+\\.[0-9]+$");
+  SystemInfos infos;
+  EEPROM.get(this->m_lastSystemInfosAddressStart, infos);
+  if (!std::regex_match(infos.version, versionPattern))
+  {
+    LOG_WARN("Last version is corrupted. Firmware version will be set.");
+    EEPROM.put(this->m_lastSystemInfosAddressStart, FIRMWARE_VERSION);
+  }
+
+  EEPROM.commit();
+}
+
+/**
+ * @brief Get system informations. It contains last version,
+ * It is usefull after an update, in order to determine migrations to apply if needed.
+ *
+ * @return SystemInfos
+ */
+SystemInfos EEPROMDatabase::getSystemInfos()
+{
+  SystemInfos systemInfos;
+  EEPROM.get(this->m_lastSystemInfosAddressStart, systemInfos);
+  if (!this->stringIsAscii(systemInfos.version))
+  {
+    LOG_WARN("Last version is corrupted. Firmware version will be returned.");
+    strcpy(systemInfos.version, FIRMWARE_VERSION);
+  }
+  return systemInfos;
 }
 
 /**
@@ -292,5 +323,11 @@ int EEPROMDatabase::getRemoteIndex(const unsigned long& id)
 bool EEPROMDatabase::migrate()
 {
   LOG_INFO("Apply database migrations...");
+  SystemInfos infos = this->getSystemInfos();
+  if (strcmp(infos.version, FIRMWARE_VERSION) == 0){
+    LOG_INFO("No migration to apply.");
+    return true;
+  }
+  // Apply migrations here.
   return true;
 }

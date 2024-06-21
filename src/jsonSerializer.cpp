@@ -30,6 +30,7 @@
 
 #include <remote.h>
 #include <networks.h>
+#include <systemInfos.h>
 
 #include <jsonSerializer.h>
 
@@ -84,6 +85,17 @@ String JSONSerializer::serializeNetworks(const Network networks[], int size)
   String output;
   return output;
 };
+
+String JSONSerializer::serializeSystemInfos(const SystemInfos& infos){
+  JsonDocument doc;
+  JsonObject object = doc.to<JsonObject>();
+
+  object["version"] = infos.version;
+
+  String output;
+  serializeJson(doc, output);
+  return output;
+}
 
 // PRIVATE
 

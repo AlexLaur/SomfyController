@@ -67,11 +67,23 @@ void homePage(AsyncWebServerRequest* request)
 // ============================================================================
 // WEBSERVER CALLBACKS RESTAPI
 // ============================================================================
-void handleCoreRestart(AsyncWebServerRequest* request)
+void handleSystemRestart(AsyncWebServerRequest* request)
 {
   LOG_INFO("Endpoint to restart module reached.");
   request->send(200, "application/json", "{\"message\":\"Restarting...\"}");
   ESP.restart();
+}
+
+void handleFetchSystemInfos(AsyncWebServerRequest* request)
+{
+  LOG_INFO("Endpoint to fetch system informations reached.");
+  Result result = controller.fetchSystemInfos();
+  if (!result.isSuccess)
+  {
+    request->send(400, "application/json", "{\"message\":\"" + result.error + "\"}");
+    return;
+  }
+  request->send(200, "application/json", result.data);
 }
 
 void handleFetchWifiNetworks(AsyncWebServerRequest* request)
@@ -310,7 +322,8 @@ void setup()
   // server.onNotFound(not_found_page);
 
   // API REST
-  server.on("/api/v1/core/restart", HTTP_POST, handleCoreRestart);
+  server.on("/api/v1/system/restart", HTTP_POST, handleSystemRestart);
+  server.on("/api/v1/system/infos", HTTP_GET, handleFetchSystemInfos);
   server.on("/api/v1/wifi/networks", HTTP_GET, handleFetchWifiNetworks);
   server.on("/api/v1/wifi/config", HTTP_GET, handleFetchWifiConfiguration);
   server.on("/api/v1/wifi/config", HTTP_POST, handleUpdateWifiConfiguration);

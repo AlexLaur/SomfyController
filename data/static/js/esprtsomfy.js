@@ -1,13 +1,17 @@
 const baseUrl = "/";
 
-const endpointRemotesFetch = baseUrl + "api/v1/remotes/fetch";
-const endpointRemoteAction = baseUrl + "api/v1/remotes/action";
-const endpointRemoteCreate = baseUrl + "api/v1/remotes/create";
-const endpointRemoteUpdate = baseUrl + "api/v1/remotes/update";
-const endpointRemoteDelete = baseUrl + "api/v1/remotes/delete";
-const endpointNetworksFetch = baseUrl + "api/v1/wifi/networks";
-const endpointNetworkUpdate = baseUrl + "api/v1/wifi/config";
-const endpointCoreRestart = baseUrl + "api/v1/core/restart";
+endpointRemotesFetch = () => baseUrl + "api/v1/remotes";
+endpointRemoteCreate = () => baseUrl + "api/v1/remotes";
+endpointRemoteUpdate = (remoteId) => baseUrl + `api/v1/remotes/${remoteId}`;
+endpointRemoteDelete = (remoteId) => baseUrl + `api/v1/remotes/${remoteId}`;
+endpointRemoteAction = (remoteId) =>  baseUrl + `api/v1/remotes/${remoteId}/action`;
+
+endpointNetworksFetch = () => baseUrl + "api/v1/wifi/networks";
+endpointNetworkFetch = () => baseUrl + "api/v1/wifi/config";
+endpointNetworkUpdate = () => baseUrl + "api/v1/wifi/config";
+
+endpointSystemRestart = () => baseUrl + "api/v1/system/restart";
+endpointSystemInfos = () => baseUrl + "api/v1/system/infos";
 
 // common utils
 function getRequest(endpoint, onSuccess, onFailed) {
@@ -25,10 +29,10 @@ function getRequest(endpoint, onSuccess, onFailed) {
     });
 }
 
-function postRequest(endpoint, payload, onSuccess, onFailed) {
+function request(endpoint, method, payload, onSuccess, onFailed) {
     fetch(endpoint, {
-        method: "POST", body: JSON.stringify(payload), headers: {
-            'Content-Type': 'application/json'
+        method: method, body: new URLSearchParams(payload), headers: {
+            'Content-Type': 'application/x-www-form-urlencoded'
         },
     }).then(function (response) {
         return response.json();
@@ -59,7 +63,7 @@ function findFirstParentWithClass(targetElement, className) {
 // index.html
 
 function loadRemotes() {
-    getRequest(endpointRemotesFetch, onRemotesFetched);
+    getRequest(endpointRemotesFetch(), onRemotesFetched);
 }
 
 function onRemotesFetched(data) {
@@ -104,9 +108,8 @@ function initRemoteActionButtons() {
             let remoteId = parseInt(containerEl.dataset.remoteId);
             let action = buttonEl.dataset.action;
 
-            let payload = { remote_id: remoteId, action: action };
-            console.log(payload)
-            postRequest(endpointRemoteAction, payload); // TODO on fail
+            let payload = { action: action };
+            request(endpointRemoteAction(remoteId), "POST", payload); // TODO on fail
 
             containerEl.dataset.remoteRollingCode = parseInt(containerEl.dataset.remoteRollingCode) + 1;
         });
@@ -141,9 +144,9 @@ function onRemoteNameChanged(event) {
         event.target.innerHTML = newName;
         event.target.contentEditable = 'true';
 
-        let payload = { remote_id: remoteId, data: { name: newName } };
+        let payload = {name: newName};
 
-        postRequest(endpointRemoteUpdate, payload); // TODO on fail
+        request(endpointRemoteUpdate(remoteId), "PATCH", payload); // TODO on fail
 
         containerEl.dataset.remoteName = newName;
     }
@@ -156,8 +159,7 @@ function onSettingButtonActionClicked(event) {
     const remoteElements = document.querySelectorAll('.remote-element[data-remote-id="' + remoteId + '"]');
 
     if (action === "delete") {
-        let payload = { remote_id: remoteId };
-        postRequest(endpointRemoteDelete, payload); // TODO on fail
+        request(endpointRemoteDelete(remoteId), "DELETE", {}); // TODO on fail
 
         remoteElements.forEach(element => {
             element.parentNode.removeChild(element);
@@ -165,8 +167,8 @@ function onSettingButtonActionClicked(event) {
 
     }
     else {
-        let payload = { remote_id: remoteId, action: action };
-        postRequest(endpointRemoteAction, payload); // TODO on fail
+        let payload = { action: action };
+        request(endpointRemoteAction(remoteId), "POST", payload); // TODO on fail
 
         if (action === "reset"){
             remoteElements.forEach(element => {
@@ -182,7 +184,7 @@ function onNewRemoteFormSubmited() {
 
     let payload = {name: remoteName};
 
-    postRequest(endpointRemoteCreate, payload, (data) =>{
+    request(endpointRemoteCreate(), "POST", payload, (data) =>{
         remoteListEl = document.getElementById("blind-list");
         remoteListEl.innerHTML += `
         <div class="table-row remote-element" data-remote-id="${data.id}" data-remote-rolling-code="${data.rolling_code}" data-remote-name="${data.name}">
@@ -216,7 +218,7 @@ function onNewRemoteFormSubmited() {
 // configuration.html
 
 function loadNetworks() {
-    getRequest(endpointNetworksFetch, onNetworksFetched);
+    getRequest(endpointNetworksFetch(), onNetworksFetched);
 }
 
 function onNetworksFetched(data) {
@@ -251,9 +253,9 @@ function onNetworkConfigFormSubmited(event) {
 
     let payload = { "ssid": ssid, "password": password };
 
-    postRequest(endpointNetworkUpdate, payload); // TODO on fail
+    request(endpointNetworkUpdate(), "POST", payload); // TODO on fail
 }
 
 function onRestartButtonClicked(event){
-    postRequest(endpointCoreRestart, {}); // TODO on fail
+    request(endpointSystemRestart(), "POST", {}); // TODO on fail
 }

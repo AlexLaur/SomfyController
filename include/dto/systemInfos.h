@@ -1,7 +1,7 @@
 /**
- * @file serializer.h
+ * @file systemInfo.h
  * @author Laurette Alexandre
- * @brief Header of Serializer abstraction.
+ * @brief Header for System Info DTO.
  * @version 2.0.0
  * @date 2024-06-06
  *
@@ -27,17 +27,7 @@
  */
 #pragma once
 
-#include <Arduino.h>
-#include <remote.h>
-#include <networks.h>
-#include <systemInfos.h>
-
-class SerializerAbstract
+struct SystemInfos
 {
-  public:
-  virtual String serializeRemote(const Remote& remote) = 0;
-  virtual String serializeRemotes(const Remote remotes[], int size) = 0;
-  virtual String serializeNetworkConfig(const NetworkConfiguration& networkConfig) = 0;
-  virtual String serializeNetworks(const Network networks[], int size) = 0;
-  virtual String serializeSystemInfos(const SystemInfos& infos) = 0;
+  char version[8]; // Allow x.xx.xx
 };

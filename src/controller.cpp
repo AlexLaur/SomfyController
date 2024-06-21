@@ -34,18 +34,33 @@
 #include <remote.h>
 #include <result.h>
 #include <networks.h>
+#include <systemInfos.h>
 #include <databaseAbs.h>
 #include <serializerAbs.h>
 #include <transmitterAbs.h>
 #include <networkClientAbs.h>
 
-Controller::Controller(DatabaseAbstract* database, NetworkClientAbstract* networkClient, SerializerAbstract* serializer,
-    TransmitterAbstract* transmitter)
+Controller::Controller(DatabaseAbstract* database, NetworkClientAbstract* networkClient,
+    SerializerAbstract* serializer, TransmitterAbstract* transmitter)
     : m_database(database)
     , m_networkClient(networkClient)
     , m_serializer(serializer)
     , m_transmitter(transmitter)
 {
+}
+
+Result Controller::fetchSystemInfos()
+{
+  LOG_DEBUG("Fetching System informations...");
+  Result result;
+
+  SystemInfos infos = this->m_database->getSystemInfos();
+
+  result.isSuccess = true;
+  String serialized = this->m_serializer->serializeSystemInfos(infos);
+  result.data = serialized;
+
+  return result;
 }
 
 Result Controller::fetchRemote(const unsigned long id)
@@ -245,7 +260,8 @@ Result Controller::operateRemote(const unsigned long id, const char* action)
     return result;
   }
 
-  if (strlen(action) == 0){
+  if (strlen(action) == 0)
+  {
     LOG_ERROR("The action should be specified. Allowed actions: up, down, stop, pair, reset.");
     result.error = "The action should be specified. Allowed actions: up, down, stop, pair, reset.";
     return result;
@@ -307,7 +323,8 @@ Result Controller::operateRemote(const unsigned long id, const char* action)
   return result;
 }
 
-Result Controller::fetchNetworkConfiguration(){
+Result Controller::fetchNetworkConfiguration()
+{
   LOG_DEBUG("Fetching Network Configuration...");
   Result result;
 

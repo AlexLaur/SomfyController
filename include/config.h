@@ -27,6 +27,8 @@
  */
 #pragma once
 
+const char FIRMWARE_VERSION[] = "2.0.0";
+
 const char AP_SSID[] = "SomfyController Fallback Hotspot";
 const char AP_PASSWORD[] = "5cKErSRCyQzy";
 

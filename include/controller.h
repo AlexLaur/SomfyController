@@ -39,6 +39,8 @@ class Controller
   Controller(DatabaseAbstract* database, NetworkClientAbstract* networkClient, SerializerAbstract* serializer,
       TransmitterAbstract* transmitter);
 
+  Result fetchSystemInfos();
+
   Result fetchRemote(const unsigned long id);
   Result fetchAllRemotes();
   Result createRemote(const char* name);

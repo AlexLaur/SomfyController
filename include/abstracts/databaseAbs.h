@@ -27,13 +27,16 @@
  */
 #pragma once
 
-#include <networks.h>
 #include <remote.h>
+#include <networks.h>
+#include <systemInfos.h>
 
 class DatabaseAbstract
 {
   public:
   virtual void init() = 0;
+
+  virtual SystemInfos getSystemInfos() = 0;
 
   virtual NetworkConfiguration getNetworkConfiguration() = 0;
   virtual bool setNetworkConfiguration(const NetworkConfiguration& networkConfig) = 0;

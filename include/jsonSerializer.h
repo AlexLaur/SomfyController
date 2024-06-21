@@ -32,6 +32,7 @@
 
 #include <remote.h>
 #include <networks.h>
+#include <systemInfos.h>
 #include <serializerAbs.h>
 
 class JSONSerializer : public SerializerAbstract
@@ -41,6 +42,7 @@ class JSONSerializer : public SerializerAbstract
   String serializeRemotes(const Remote remotes[], int size);
   String serializeNetworkConfig(const NetworkConfiguration& networkConfig);
   String serializeNetworks(const Network networks[], int size);
+  String serializeSystemInfos(const SystemInfos& infos);
 
   private:
   void serializeRemote(JsonObject object, const Remote& remote);
