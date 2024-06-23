@@ -74,7 +74,7 @@ bool RTSTransmitter::sendProgCmd(const unsigned long remoteId, const unsigned in
 };
 
 // PRIVATE
-void RTSTransmitter::buildFrame(unsigned long remoteId, unsigned int rollingCode, byte action)
+void RTSTransmitter::buildFrame(const unsigned long remoteId, const unsigned int rollingCode, const byte action)
 {
   this->m_frame[0] = 0xA7;
   this->m_frame[1] = action << 4;

@@ -42,7 +42,7 @@ class RTSTransmitter : public TransmitterAbstract
   private:
   byte m_frame[7];
 
-  void buildFrame(unsigned long remoteId, unsigned int rollingCode, byte action);
+  void buildFrame(const unsigned long remoteId, const unsigned int rollingCode, const byte action);
   void sendCommand(); // Will call sendCommand(sync)
   void sendCommand(byte sync);
   void debugBuildedFrame(int base);
