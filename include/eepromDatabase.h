@@ -36,6 +36,7 @@ class EEPROMDatabase : public DatabaseAbstract
 {
   public:
   void init();
+  void fixIntegrity();
 
   SystemInfos getSystemInfos();
 

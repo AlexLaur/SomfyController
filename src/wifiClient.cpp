@@ -85,9 +85,9 @@ bool WifiClient::connect(const char* ssid, const char* password)
 /**
  * @brief Get the IP Address of this device
  *
- * @return IPAddress
+ * @return String
  */
-IPAddress WifiClient::getIP() { return WiFi.localIP(); };
+String WifiClient::getIP() { return WiFi.localIP().toString(); };
 
 /**
  * @brief Is Connected to a network ?

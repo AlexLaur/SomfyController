@@ -47,8 +47,11 @@ void EEPROMDatabase::init()
   EEPROM.begin(totalSize);
 
   this->migrate();
+  this->fixIntegrity();
+}
 
-  // Todo wipe to emptyRemote all corupted remotes
+void EEPROMDatabase::fixIntegrity()
+{
   LOG_DEBUG("Reseting all corrupted remotes...");
   Remote remoteRead;
   Remote emptyRemote = { 0, 0, "" };
@@ -324,7 +327,8 @@ bool EEPROMDatabase::migrate()
 {
   LOG_INFO("Apply database migrations...");
   SystemInfos infos = this->getSystemInfos();
-  if (strcmp(infos.version, FIRMWARE_VERSION) == 0){
+  if (strcmp(infos.version, FIRMWARE_VERSION) == 0)
+  {
     LOG_INFO("No migration to apply.");
     return true;
   }

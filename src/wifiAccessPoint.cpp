@@ -46,4 +46,6 @@ void WifiAccessPoint::startAccessPoint(const char* ssid, const char* password)
   }
 };
 
-IPAddress WifiAccessPoint::getIP() { return WiFi.softAPIP(); };
+String WifiAccessPoint::getIP() {
+  return WiFi.softAPIP().toString();
+};

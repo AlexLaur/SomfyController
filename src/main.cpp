@@ -281,7 +281,7 @@ void setup()
     LOG_WARN("No wifi configuration found.");
     LOG_INFO("Configuring access point (AP)...");
     wifiAP.startAccessPoint(AP_SSID, AP_PASSWORD);
-    LOG_INFO("AP IP address:", wifiAP.getIP().toString());
+    LOG_INFO("AP IP address:", wifiAP.getIP());
   }
   else
   {
@@ -292,11 +292,11 @@ void setup()
       // Not connected to wifi, starting the AP mode
       LOG_INFO("Configuring access point (AP)...");
       wifiAP.startAccessPoint(AP_SSID, AP_PASSWORD);
-      LOG_INFO("AP IP address:", wifiAP.getIP().toString());
+      LOG_INFO("AP IP address:", wifiAP.getIP());
     }
     else
     {
-      LOG_INFO("WiFi IP address:", wifiClient.getIP().toString());
+      LOG_INFO("WiFi IP address:", wifiClient.getIP());
     }
   }
 

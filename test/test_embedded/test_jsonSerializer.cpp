@@ -6,17 +6,19 @@
 #include <systemInfos.h>
 #include <jsonSerializer.h>
 
+#include "./test_jsonSerializer.h"
+
 JSONSerializer serializerTest;
 
-void setUp(void)
-{
-  // set stuff up here
-}
+// void setUp(void)
+// {
+//   // set stuff up here
+// }
 
-void tearDown(void)
-{
-  // clean stuff up here
-}
+// void tearDown(void)
+// {
+//   // clean stuff up here
+// }
 
 void test_METHOD_serializeRemote_WITH_remote_SHOULD_return_string(void)
 {
@@ -104,39 +106,39 @@ void test_METHOD_serializeNetworks_WITH_two_networks_SHOULD_return_string(void)
   TEST_ASSERT_EQUAL_STRING(expected.c_str(), serialized.c_str());
 }
 
-void RUN_UNITY_TESTS()
-{
-  UNITY_BEGIN();
-  RUN_TEST(test_METHOD_serializeRemote_WITH_remote_SHOULD_return_string);
-  RUN_TEST(test_METHOD_serializeRemotes_WITH_two_remotes_SHOULD_return_string);
-  RUN_TEST(test_METHOD_serializeRemotes_WITH_one_remote_SHOULD_return_string);
-  RUN_TEST(test_METHOD_serializeNetworkConfig_WITH_config_SHOULD_return_string);
-  RUN_TEST(test_METHOD_serializeSystemInfos_WITH_info_SHOULD_return_string);
-  RUN_TEST(test_METHOD_serializeNetworks_WITH_one_network_SHOULD_return_string);
-  RUN_TEST(test_METHOD_serializeNetworks_WITH_two_networks_SHOULD_return_string);
-  UNITY_END();
-}
+// void RUN_UNITY_TESTS()
+// {
+//   UNITY_BEGIN();
+//   RUN_TEST(test_METHOD_serializeRemote_WITH_remote_SHOULD_return_string);
+//   RUN_TEST(test_METHOD_serializeRemotes_WITH_two_remotes_SHOULD_return_string);
+//   RUN_TEST(test_METHOD_serializeRemotes_WITH_one_remote_SHOULD_return_string);
+//   RUN_TEST(test_METHOD_serializeNetworkConfig_WITH_config_SHOULD_return_string);
+//   RUN_TEST(test_METHOD_serializeSystemInfos_WITH_info_SHOULD_return_string);
+//   RUN_TEST(test_METHOD_serializeNetworks_WITH_one_network_SHOULD_return_string);
+//   RUN_TEST(test_METHOD_serializeNetworks_WITH_two_networks_SHOULD_return_string);
+//   UNITY_END();
+// }
 
-#ifdef ARDUINO
+// #ifdef ARDUINO
 
-#include <Arduino.h>
+// #include <Arduino.h>
 
-void setup()
-{
-  Serial.begin(115200);
-  delay(1000);
+// void setup()
+// {
+//   Serial.begin(115200);
+//   delay(1000);
 
-  RUN_UNITY_TESTS();
-}
+//   RUN_UNITY_TESTS();
+// }
 
-void loop() { }
+// void loop() { }
 
-#else
+// #else
 
-int main(int argc, char** argv)
-{
-  RUN_UNITY_TESTS();
-  return 0;
-}
+// int main(int argc, char** argv)
+// {
+//   RUN_UNITY_TESTS();
+//   return 0;
+// }
 
-#endif
+// #endif

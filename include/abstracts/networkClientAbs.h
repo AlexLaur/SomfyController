@@ -27,7 +27,6 @@
  */
 #pragma once
 
-#include <ESP8266WiFi.h> // TODO: Should be removed from here
 #include <networks.h>
 
 class NetworkClientAbstract
@@ -35,7 +34,7 @@ class NetworkClientAbstract
   public:
   virtual bool connect(const NetworkConfiguration& conf) = 0;
   virtual bool connect(const char* ssid, const char* password) = 0;
-  virtual IPAddress getIP() = 0; // TODO: to specific to WIFI, should be changed
+  virtual String getIP() = 0;
   virtual bool isConnected() = 0;
   virtual void getNetworks(Network networks[]) = 0;
 };

@@ -27,7 +27,6 @@
  */
 #pragma once
 
-#include <ESP8266WiFi.h>
 #include <networks.h>
 #include <networkClientAbs.h>
 
@@ -36,7 +35,7 @@ class WifiClient : public NetworkClientAbstract
   public:
   bool connect(const NetworkConfiguration& conf);
   bool connect(const char* ssid, const char* password);
-  IPAddress getIP();
+  String getIP();
   bool isConnected();
   void getNetworks(Network networks[]);
 };
