@@ -58,7 +58,7 @@ String JSONSerializer::serializeRemotes(const Remote remotes[], int size)
       // Empty remote
       continue;
     }
-    JsonObject object = array.createNestedObject();
+    JsonObject object = array.add<JsonObject>();
     this->serializeRemote(object, remotes[i]);
   }
 
@@ -82,7 +82,23 @@ String JSONSerializer::serializeNetworkConfig(const NetworkConfiguration& networ
 
 String JSONSerializer::serializeNetworks(const Network networks[], int size)
 {
+  JsonDocument doc;
+  JsonArray array = doc.to<JsonArray>();
+
+  for (int i = 0; i < size; i++)
+  {
+    if (strcmp(networks[i].SSID, "") == 0)
+    {
+      // Empty remote
+      continue;
+    }
+    JsonObject object = array.add<JsonObject>();
+    object["ssid"] = networks[i].SSID;
+    object["rssi"] = networks[i].RSSI;
+  }
+
   String output;
+  serializeJson(doc, output);
   return output;
 };
 

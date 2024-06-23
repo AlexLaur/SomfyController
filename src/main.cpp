@@ -29,8 +29,6 @@
 #include <Arduino.h>
 #include <DebugLog.h>
 #include <LittleFS.h>
-#include <AsyncJson.h>
-#include <ArduinoJson.h>
 #include <ESP8266WiFi.h>
 #include <ESPAsyncTCP.h>
 #include <ESPAsyncWebServer.h>
@@ -89,21 +87,8 @@ void handleFetchSystemInfos(AsyncWebServerRequest* request)
 void handleFetchWifiNetworks(AsyncWebServerRequest* request)
 {
   LOG_INFO("Endpoint to fetch Wifi Networks reached.");
-  String output;
-  JsonDocument doc;
-  JsonArray array = doc.to<JsonArray>();
-  for (int i = 0; i < MAX_NETWORK_SCAN; i++)
-  {
-    if (strlen(networks[i].SSID) == 0)
-    {
-      continue;
-    }
-    JsonObject object = array.createNestedObject();
-    object["ssid"] = networks[i].SSID;
-    object["rssi"] = networks[i].RSSI;
-  }
-  serializeJson(doc, output);
-  request->send(200, "application/json", output);
+  String serialized = serializer.serializeNetworks(networks, MAX_NETWORK_SCAN);
+  request->send(200, "application/json", serialized);
 }
 
 void handleFetchWifiConfiguration(AsyncWebServerRequest* request)
@@ -257,6 +242,7 @@ void handleActionRemote(AsyncWebServerRequest* request)
 // ============================================================================
 // SETUP
 // ============================================================================
+#ifndef PIO_UNIT_TESTING
 void setup()
 {
   Serial.begin(115200);
@@ -342,3 +328,4 @@ void loop()
 {
   // put your main code here, to run repeatedly:
 }
+#endif // PIO_UNIT_TESTING
