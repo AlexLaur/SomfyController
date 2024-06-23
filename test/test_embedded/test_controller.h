@@ -51,10 +51,10 @@ class FakeTransmitter : public TransmitterAbstract
   static bool sendDOWNCommandCalled;
   static bool sendPROGCommandCalled;
 
-  bool sendUpCmd(unsigned long remoteId, unsigned int rollingCode);
-  bool sendStopCmd(unsigned long remoteId, unsigned int rollingCode);
-  bool sendDownCmd(unsigned long remoteId, unsigned int rollingCode);
-  bool sendProgCmd(unsigned long remoteId, unsigned int rollingCode);
+  bool sendUpCmd(const unsigned long remoteId, const unsigned int rollingCode);
+  bool sendStopCmd(const unsigned long remoteId, const unsigned int rollingCode);
+  bool sendDownCmd(const unsigned long remoteId, const unsigned int rollingCode);
+  bool sendProgCmd(const unsigned long remoteId, const unsigned int rollingCode);
 };
 
 class FakeNetworkClient : public NetworkClientAbstract
@@ -68,6 +68,8 @@ class FakeNetworkClient : public NetworkClientAbstract
 };
 
 // TEST controller
+
+void RUN_CONTROLLER_TESTS(void);
 
 void test_METHOD_fetchSystemInfos_SHOULD_return_systeminfos(void);
 

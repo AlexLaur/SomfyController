@@ -116,22 +116,22 @@ bool FakeTransmitter::sendSTOPCommandCalled = false;
 bool FakeTransmitter::sendDOWNCommandCalled = false;
 bool FakeTransmitter::sendPROGCommandCalled = false;
 
-bool FakeTransmitter::sendUpCmd(unsigned long remoteId, unsigned int rollingCode)
+bool FakeTransmitter::sendUpCmd(const unsigned long remoteId, const unsigned int rollingCode)
 {
   this->sendUPCommandCalled = true;
   return true;
 };
-bool FakeTransmitter::sendStopCmd(unsigned long remoteId, unsigned int rollingCode)
+bool FakeTransmitter::sendStopCmd(const unsigned long remoteId, const unsigned int rollingCode)
 {
   this->sendSTOPCommandCalled = true;
   return true;
 }
-bool FakeTransmitter::sendDownCmd(unsigned long remoteId, unsigned int rollingCode)
+bool FakeTransmitter::sendDownCmd(const unsigned long remoteId, const unsigned int rollingCode)
 {
   this->sendDOWNCommandCalled = true;
   return true;
 }
-bool FakeTransmitter::sendProgCmd(unsigned long remoteId, unsigned int rollingCode)
+bool FakeTransmitter::sendProgCmd(const unsigned long remoteId, const unsigned int rollingCode)
 {
   this->sendPROGCommandCalled = true;
   return true;
@@ -145,6 +145,7 @@ bool FakeNetworkClient::isConnected() { return true; };
 void FakeNetworkClient::getNetworks(Network networks[]) {};
 
 // TEST CONTROLLER
+// ############################################################################
 
 FakeDatabase databaseFake;
 FakeNetworkClient networkClientFake;
@@ -152,6 +153,44 @@ FakeSerializer serializerFake;
 FakeTransmitter transmitterFake;
 
 Controller controllerTest(&databaseFake, &networkClientFake, &serializerFake, &transmitterFake);
+
+void RUN_CONTROLLER_TESTS(void){
+  RUN_TEST(test_METHOD_fetchSystemInfos_SHOULD_return_systeminfos);
+  RUN_TEST(test_METHOD_fetchRemote_WITH_unspecified_id_SHOULD_return_result_WITH_success_to_false);
+  RUN_TEST(test_METHOD_fetchRemote_WITH_remote_not_found_SHOULD_return_result_WITH_success_to_false);
+  RUN_TEST(test_METHOD_fetchRemote_SHOULD_return_result_WITH_success_to_true);
+  RUN_TEST(test_METHOD_createRemote_WITH_null_name_SHOULD_return_result_WITH_success_to_false);
+  RUN_TEST(test_METHOD_createRemote_WITH_empty_name_SHOULD_return_result_WITH_success_to_false);
+  RUN_TEST(test_METHOD_createRemote_WITH_name_too_long_SHOULD_return_result_WITH_success_to_false);
+  RUN_TEST(test_METHOD_createRemote_WITH_database_fail_SHOULD_return_result_WITH_success_to_false);
+  RUN_TEST(test_METHOD_createRemote_SHOULD_return_result_WITH_success_to_true);
+  RUN_TEST(test_METHOD_deleteRemote_WITH_empty_remote_id_SHOULD_return_result_WITH_success_to_false);
+  RUN_TEST(test_METHOD_deleteRemote_WITH_database_fail_SHOULD_return_result_WITH_success_to_false);
+  RUN_TEST(test_METHOD_deleteRemote_SHOULD_return_result_WITH_success_to_true);
+  RUN_TEST(test_METHOD_updateRemote_WITH_empty_remote_id_SHOULD_return_result_WITH_success_to_false);
+  RUN_TEST(test_METHOD_updateRemote_WITH_remote_not_found_SHOULD_return_result_WITH_success_to_false);
+  RUN_TEST(test_METHOD_updateRemote_WITH_valid_remote_AND_name_too_long_SHOULD_return_result_WITH_success_to_false);
+  RUN_TEST(test_METHOD_updateRemote_WITH_valid_remote_AND_null_name_SHOULD_return_result_WITH_success_to_true);
+  RUN_TEST(test_METHOD_updateRemote_WITH_valid_remote_AND_valid_name_SHOULD_return_result_WITH_success_to_true);
+  RUN_TEST(test_METHOD_updateRemote_WITH_valid_remote_AND_rolling_code_provided_SHOULD_return_result_WITH_success_to_true);
+  RUN_TEST(test_METHOD_updateRemote_WITH_valid_remote_AND_valid_data_AND_database_fail_SHOULD_return_result_WITH_success_to_false);
+  RUN_TEST(test_METHOD_operateRemote_WITH_empty_remote_id_SHOULD_return_result_WITH_success_to_false);
+  RUN_TEST(test_METHOD_operateRemote_WITH_null_action_SHOULD_return_result_WITH_success_to_false);
+  RUN_TEST(test_METHOD_operateRemote_WITH_empty_action_SHOULD_return_result_WITH_success_to_false);
+  RUN_TEST(test_METHOD_operateRemote_WITH_not_found_remote_SHOULD_return_result_WITH_success_to_false);
+  RUN_TEST(test_METHOD_operateRemote_WITH_unknown_action_SHOULD_return_result_WITH_success_to_false);
+  RUN_TEST(test_METHOD_operateRemote_WITH_valide_remote_AND_up_action_SHOULD_return_result_WITH_success_to_true);
+  RUN_TEST(test_METHOD_operateRemote_WITH_valide_remote_AND_stop_action_SHOULD_return_result_WITH_success_to_true);
+  RUN_TEST(test_METHOD_operateRemote_WITH_valide_remote_AND_down_action_SHOULD_return_result_WITH_success_to_true);
+  RUN_TEST(test_METHOD_operateRemote_WITH_valide_remote_AND_pair_action_SHOULD_return_result_WITH_success_to_true);
+  RUN_TEST(test_METHOD_operateRemote_WITH_valide_remote_AND_reset_action_SHOULD_return_result_WITH_success_to_true);
+  RUN_TEST(test_METHOD_fetchNetworkConfiguration_SHOULD_return_result_WITH_success_to_true);
+  RUN_TEST(test_METHOD_updateNetworkConfiguration_WITH_valid_data_SHOULD_return_result_WITH_success_to_true);
+  RUN_TEST(test_METHOD_updateNetworkConfiguration_WITH_valid_data_AND_empty_password_SHOULD_return_result_WITH_success_to_true);
+  RUN_TEST(test_METHOD_updateNetworkConfiguration_WITH_null_SSID_SHOULD_return_result_WITH_success_to_false);
+  RUN_TEST(test_METHOD_updateNetworkConfiguration_WITH_empty_SSID_SHOULD_return_result_WITH_success_to_false);
+  RUN_TEST(test_METHOD_updateNetworkConfiguration_WITH_update_fail_SHOULD_return_result_WITH_success_to_false);
+}
 
 void test_METHOD_fetchSystemInfos_SHOULD_return_systeminfos(void)
 {

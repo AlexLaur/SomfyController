@@ -1,5 +1,7 @@
 #pragma once
 
+void RUN_JSONSERIALIZER_TESTS(void);
+
 void test_METHOD_serializeRemote_WITH_remote_SHOULD_return_string(void);
 void test_METHOD_serializeRemotes_WITH_two_remotes_SHOULD_return_string(void);
 void test_METHOD_serializeRemotes_WITH_one_remote_SHOULD_return_string(void);

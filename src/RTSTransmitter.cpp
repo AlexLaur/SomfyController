@@ -48,25 +48,25 @@ void RTSTransmitter::init()
   digitalWrite(PORT_TX, LOW);
 }
 
-bool RTSTransmitter::sendUpCmd(unsigned long remoteId, unsigned int rollingCode)
+bool RTSTransmitter::sendUpCmd(const unsigned long remoteId, const unsigned int rollingCode)
 {
   this->buildFrame(remoteId, rollingCode, BYTE_ACTION_UP);
   this->sendCommand();
   return true;
 };
-bool RTSTransmitter::sendStopCmd(unsigned long remoteId, unsigned int rollingCode)
+bool RTSTransmitter::sendStopCmd(const unsigned long remoteId, const unsigned int rollingCode)
 {
   this->buildFrame(remoteId, rollingCode, BYTE_ACTION_STOP);
   this->sendCommand();
   return true;
 };
-bool RTSTransmitter::sendDownCmd(unsigned long remoteId, unsigned int rollingCode)
+bool RTSTransmitter::sendDownCmd(const unsigned long remoteId, const unsigned int rollingCode)
 {
   this->buildFrame(remoteId, rollingCode, BYTE_ACTION_DOWN);
   this->sendCommand();
   return true;
 };
-bool RTSTransmitter::sendProgCmd(unsigned long remoteId, unsigned int rollingCode)
+bool RTSTransmitter::sendProgCmd(const unsigned long remoteId, const unsigned int rollingCode)
 {
   this->buildFrame(remoteId, rollingCode, BYTE_ACTION_PROG);
   this->sendCommand();

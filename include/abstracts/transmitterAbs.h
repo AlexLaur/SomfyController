@@ -30,8 +30,8 @@
 class TransmitterAbstract
 {
   public:
-  virtual bool sendUpCmd(unsigned long remoteId, unsigned int rollingCode) = 0;
-  virtual bool sendStopCmd(unsigned long remoteId, unsigned int rollingCode) = 0;
-  virtual bool sendDownCmd(unsigned long remoteId, unsigned int rollingCode) = 0;
-  virtual bool sendProgCmd(unsigned long remoteId, unsigned int rollingCode) = 0;
+  virtual bool sendUpCmd(const unsigned long remoteId, const unsigned int rollingCode) = 0;
+  virtual bool sendStopCmd(const unsigned long remoteId, const unsigned int rollingCode) = 0;
+  virtual bool sendDownCmd(const unsigned long remoteId, const unsigned int rollingCode) = 0;
+  virtual bool sendProgCmd(const unsigned long remoteId, const unsigned int rollingCode) = 0;
 };

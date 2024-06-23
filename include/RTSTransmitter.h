@@ -34,10 +34,10 @@ class RTSTransmitter : public TransmitterAbstract
 {
   public:
   void init();
-  bool sendUpCmd(unsigned long remoteId, unsigned int rollingCode);
-  bool sendStopCmd(unsigned long remoteId, unsigned int rollingCode);
-  bool sendDownCmd(unsigned long remoteId, unsigned int rollingCode);
-  bool sendProgCmd(unsigned long remoteId, unsigned int rollingCode);
+  bool sendUpCmd(const unsigned long remoteId, const unsigned int rollingCode);
+  bool sendStopCmd(const unsigned long remoteId, const unsigned int rollingCode);
+  bool sendDownCmd(const unsigned long remoteId, const unsigned int rollingCode);
+  bool sendProgCmd(const unsigned long remoteId, const unsigned int rollingCode);
 
   private:
   byte m_frame[7];

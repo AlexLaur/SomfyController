@@ -11,3 +11,6 @@
 
 EEPROMDatabase databaseTest;
 
+void RUN_EEPROMDATABASE_TESTS(void){
+
+}
