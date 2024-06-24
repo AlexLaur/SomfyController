@@ -29,12 +29,12 @@
 
 struct Network
 {
-  char SSID[32];
+  char SSID[33];
   int RSSI;
 };
 
 struct NetworkConfiguration
 {
-  char ssid[32];
-  char password[63];
+  char ssid[33];
+  char password[64];
 };
