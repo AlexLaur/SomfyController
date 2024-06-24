@@ -2,7 +2,7 @@
  * @file eepromDatabase.h
  * @author Laurette Alexandre
  * @brief Header of EEPROM database storage system.
- * @version 2.0.0
+ * @version 2.1.0
  * @date 2024-06-06
  *
  * @copyright (c) 2024 Laurette Alexandre
@@ -29,6 +29,7 @@
 
 #include <networks.h>
 #include <remote.h>
+#include <mqttConfig.h>
 #include <systemInfos.h>
 #include <databaseAbs.h>
 
@@ -38,25 +39,35 @@ class EEPROMDatabase : public DatabaseAbstract
   void init();
   void fixIntegrity();
 
+  // SystemInfos
   SystemInfos getSystemInfos();
 
+  // Network Configuration
   NetworkConfiguration getNetworkConfiguration();
   bool setNetworkConfiguration(const NetworkConfiguration& networkConfig);
   void resetNetworkConfiguration();
 
-  // CRUD
+  // Remotes CRUD
   Remote createRemote(const char* name);
   void getAllRemotes(Remote remotes[]);
   Remote getRemote(const unsigned long& id);
   bool updateRemote(const Remote& remote);
   bool deleteRemote(const unsigned long& id);
 
+  // MQTT Configuration
+  MQTTConfig getMQTTConfiguration();
+  bool setMQTTConfiguration(const MQTTConfig& mqttConfig);
+
   private:
   int m_lastSystemInfosAddressStart = 0;
   int m_networkConfigAddressStart = sizeof(SystemInfos);
-  int m_remotesAddressStart = sizeof(SystemInfos) + sizeof(NetworkConfiguration);
+  int m_mqttConfigAddressStart = sizeof(SystemInfos) + sizeof(MQTTConfig);
+  int m_remotesAddressStart = sizeof(SystemInfos) + sizeof(MQTTConfig) + sizeof(NetworkConfiguration);
 
   bool migrate();
   bool stringIsAscii(const char* data);
   int getRemoteIndex(const unsigned long& id);
+
+  // Migrations
+  void apply2_1_0_update();
 };

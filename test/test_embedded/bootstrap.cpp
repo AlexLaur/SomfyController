@@ -19,6 +19,7 @@ void tearDown(void)
   FakeDatabase::shouldReturnEmptyRemote = false;
   FakeDatabase::shouldFailCreateRemote = false;
   FakeDatabase::shouldFailUpdateNetworkConfiguration = false;
+  FakeDatabase::shouldFailUpdateMQTTConfiguration = false;
 
   FakeTransmitter::sendUPCommandCalled = false;
   FakeTransmitter::sendSTOPCommandCalled = false;

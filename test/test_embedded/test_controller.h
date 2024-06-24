@@ -1,6 +1,9 @@
 #pragma once
 
 #include <result.h>
+#include <networks.h>
+#include <mqttConfig.h>
+#include <systemInfos.h>
 #include <databaseAbs.h>
 #include <serializerAbs.h>
 #include <transmitterAbs.h>
@@ -15,6 +18,7 @@ class FakeDatabase : public DatabaseAbstract
   static bool shouldReturnEmptyRemote;
   static bool shouldFailCreateRemote;
   static bool shouldFailUpdateNetworkConfiguration;
+  static bool shouldFailUpdateMQTTConfiguration;
 
   void init();
   bool migrate();
@@ -25,12 +29,14 @@ class FakeDatabase : public DatabaseAbstract
   bool setNetworkConfiguration(const NetworkConfiguration& networkConfig);
   void resetNetworkConfiguration();
 
-  // CRUD
   Remote createRemote(const char* name);
   void getAllRemotes(Remote remotes[]);
   Remote getRemote(const unsigned long& id);
   bool updateRemote(const Remote& remote);
   bool deleteRemote(const unsigned long& id);
+
+  MQTTConfig getMQTTConfiguration();
+  bool setMQTTConfiguration(const MQTTConfig& mqttConfig);
 };
 
 class FakeSerializer : public SerializerAbstract

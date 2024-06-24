@@ -2,7 +2,7 @@
  * @file eepromDatabase.cpp
  * @author Laurette Alexandre
  * @brief Implementation of EEPROM database storage system.
- * @version 2.0.0
+ * @version 2.1.0
  * @date 2024-06-06
  *
  * @copyright (c) 2024 Laurette Alexandre
@@ -280,6 +280,43 @@ bool EEPROMDatabase::updateRemote(const Remote& remote)
   return true;
 }
 
+/**
+ * @brief Get the MQTT configuration
+ *
+ * @return MQTTConfig
+ */
+MQTTConfig EEPROMDatabase::getMQTTConfiguration()
+{
+  MQTTConfig mqttConfig;
+  EEPROM.get(this->m_mqttConfigAddressStart, mqttConfig);
+  if (!this->stringIsAscii(mqttConfig.broker))
+  {
+    LOG_ERROR("The mqttConfig seems to be corrupted. An empty config will be returned.");
+
+    strcpy(mqttConfig.broker, "");
+    strcpy(mqttConfig.password, "");
+    strcpy(mqttConfig.username, "");
+    mqttConfig.port = 0;
+  }
+  return mqttConfig;
+}
+
+/**
+ * @brief Update the MQTT cofiguration
+ *
+ * @param mqttConfig The new configuration to save
+ * @return true if the update was done
+ * @return false otherwise
+ */
+bool EEPROMDatabase::setMQTTConfiguration(const MQTTConfig& mqttConfig)
+{
+  LOG_DEBUG("Saving new MQTT configuration...");
+  EEPROM.put(this->m_mqttConfigAddressStart, mqttConfig);
+  EEPROM.commit();
+  LOG_INFO("MQTT configuration saved.");
+  return true;
+}
+
 // PRIVATE
 /**
  * @brief Check if a string (char*) contains non-ascii chars.
@@ -333,5 +370,42 @@ bool EEPROMDatabase::migrate()
     return true;
   }
   // Apply migrations here.
+  if (strcmp(FIRMWARE_VERSION, "2.1.0") == 0)
+  {
+    this->apply2_1_0_update();
+  }
+
+  // Then, save new version
+  EEPROM.put(this->m_lastSystemInfosAddressStart, FIRMWARE_VERSION);
+  EEPROM.commit();
+  LOG_INFO("Migration applied.");
   return true;
+}
+
+// Migrations
+
+/**
+ * @brief In this version, we introduce MQTT config between NetworkConfig and Remotes.
+ * We need to get all remotes, and moved to another address.
+ */
+void EEPROMDatabase::apply2_1_0_update()
+{
+  LOG_INFO("Applying 2.1.0 patches...");
+  Remote remotes[MAX_REMOTES];
+  for (int i = 0; i < MAX_REMOTES; ++i)
+  {
+    Remote remote;
+    EEPROM.get(sizeof(SystemInfos) + sizeof(NetworkConfiguration) + i * sizeof(Remote), remote);
+    remotes[i] = remote;
+  }
+  // move remotes
+  for (int i = 0; i < MAX_REMOTES; ++i)
+  {
+    EEPROM.put(this->m_remotesAddressStart + i * sizeof(Remote), remotes[i]);
+  }
+  // Create empty config for MQTT
+  MQTTConfig mqttConfig = { "", 0, "", "" };
+  EEPROM.put(this->m_mqttConfigAddressStart, mqttConfig);
+  EEPROM.commit();
+  LOG_INFO("2.1.0 patches applied.");
 }

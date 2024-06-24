@@ -1,7 +1,7 @@
 /**
- * @file jsonSerializer.h
+ * @file mqttConfig.h
  * @author Laurette Alexandre
- * @brief Header for JSON serialization.
+ * @brief Header for MQTT configuration DTO.
  * @version 2.1.0
  * @date 2024-06-06
  *
@@ -27,23 +27,10 @@
  */
 #pragma once
 
-#include <Arduino.h>
-#include <ArduinoJson.h>
-
-#include <remote.h>
-#include <networks.h>
-#include <systemInfos.h>
-#include <serializerAbs.h>
-
-class JSONSerializer : public SerializerAbstract
+struct MQTTConfig
 {
-  public:
-  String serializeRemote(const Remote& remote);
-  String serializeRemotes(const Remote remotes[], int size);
-  String serializeNetworkConfig(const NetworkConfiguration& networkConfig);
-  String serializeNetworks(const Network networks[], int size);
-  String serializeSystemInfos(const SystemInfos& infos);
-
-  private:
-  void serializeRemote(JsonObject object, const Remote& remote);
+    char broker[65]; // allow 64 max length
+    unsigned short port;
+    char username[33]; // allow 32 chars max
+    char password[33];
 };

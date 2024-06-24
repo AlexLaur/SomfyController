@@ -15,6 +15,7 @@ bool FakeDatabase::shouldFailUpdateRemote = false;
 bool FakeDatabase::shouldReturnEmptyRemote = false;
 bool FakeDatabase::shouldFailCreateRemote = false;
 bool FakeDatabase::shouldFailUpdateNetworkConfiguration = false;
+bool FakeDatabase::shouldFailUpdateMQTTConfiguration = false;
 
 void FakeDatabase::init() { }
 
@@ -85,6 +86,19 @@ bool FakeDatabase::deleteRemote(const unsigned long& id)
     return false;
   }
   return true;
+}
+
+MQTTConfig FakeDatabase::getMQTTConfiguration(){
+  MQTTConfig conf = {"foo.foo", 1234, "foo", "bar"};
+  return conf;
+}
+
+bool FakeDatabase::setMQTTConfiguration(const MQTTConfig& mqttConfig){
+  if (this->shouldFailUpdateMQTTConfiguration)
+    {
+      return false;
+    }
+    return true;
 }
 
 // Fake Serializer
