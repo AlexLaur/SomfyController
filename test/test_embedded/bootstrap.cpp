@@ -3,6 +3,7 @@
 
 #include "./test_jsonSerializer.h"
 #include "./test_eepromDatabase.h"
+#include "./test_RTSTransmitter.h"
 #include "./test_controller.h"
 
 void setUp(void)
@@ -34,6 +35,8 @@ void RUN_UNITY_TESTS()
   RUN_EEPROMDATABASE_TESTS();
   // Controller tests
   RUN_CONTROLLER_TESTS();
+  // RTS Transmitter tests
+  RUN_RTSTRANSMITTER_TESTS();
   UNITY_END();
 }
 

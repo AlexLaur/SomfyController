@@ -53,25 +53,36 @@ bool RTSTransmitter::sendUpCmd(const unsigned long remoteId, const unsigned int 
   this->buildFrame(remoteId, rollingCode, BYTE_ACTION_UP);
   this->sendCommand();
   return true;
-};
+}
+
 bool RTSTransmitter::sendStopCmd(const unsigned long remoteId, const unsigned int rollingCode)
 {
   this->buildFrame(remoteId, rollingCode, BYTE_ACTION_STOP);
   this->sendCommand();
   return true;
-};
+}
+
 bool RTSTransmitter::sendDownCmd(const unsigned long remoteId, const unsigned int rollingCode)
 {
   this->buildFrame(remoteId, rollingCode, BYTE_ACTION_DOWN);
   this->sendCommand();
   return true;
-};
+}
+
 bool RTSTransmitter::sendProgCmd(const unsigned long remoteId, const unsigned int rollingCode)
 {
   this->buildFrame(remoteId, rollingCode, BYTE_ACTION_PROG);
   this->sendCommand();
   return true;
-};
+}
+
+byte* RTSTransmitter::getBytesFrame(){
+  return this->m_frame;
+}
+
+size_t RTSTransmitter::getBytesFrameSize(){
+  return sizeof(this->m_frame) / sizeof(byte);
+}
 
 // PRIVATE
 void RTSTransmitter::buildFrame(const unsigned long remoteId, const unsigned int rollingCode, const byte action)
@@ -113,7 +124,7 @@ void RTSTransmitter::sendCommand()
   }
 }
 
-void RTSTransmitter::sendCommand(byte sync)
+void RTSTransmitter::sendCommand(const byte sync)
 {
   if (sync == 2)
   {
@@ -164,7 +175,7 @@ void RTSTransmitter::sendCommand(byte sync)
   delayMicroseconds(30415); // Inter-frame silence
 };
 
-void RTSTransmitter::debugBuildedFrame(int base)
+void RTSTransmitter::debugBuildedFrame(const int base)
 {
   String debugFrame;
   for (int i = 0; i < 7; i++)

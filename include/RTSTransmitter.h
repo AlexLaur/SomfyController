@@ -39,11 +39,15 @@ class RTSTransmitter : public TransmitterAbstract
   bool sendDownCmd(const unsigned long remoteId, const unsigned int rollingCode);
   bool sendProgCmd(const unsigned long remoteId, const unsigned int rollingCode);
 
+  // Only to allow tests on buildFrame method.
+  byte* getBytesFrame();
+  size_t getBytesFrameSize();
+
   private:
   byte m_frame[7];
 
   void buildFrame(const unsigned long remoteId, const unsigned int rollingCode, const byte action);
   void sendCommand(); // Will call sendCommand(sync)
-  void sendCommand(byte sync);
-  void debugBuildedFrame(int base);
+  void sendCommand(const byte sync);
+  void debugBuildedFrame(const int base);
 };
