@@ -16,6 +16,10 @@ Once binaries (Core and UI) uploaded. Connect to the Hotspot `SomfyController Fa
 
 On the UI, you can `create`, `read`, `update` and `delete` remotes.
 
+## UI
+UI is build with HTML/CSS/JS. It use library like tailwind and alpine.js.
+![UI](./doc/ui.jpg)
+
 ## API
 ### REST
 You have some endpoints to `control`, `update`, `create` and `delete` remotes. To update WiFi configuration... All documentation about API is defined in the api.html page. (This page is accessible through AP mode or network mode).
