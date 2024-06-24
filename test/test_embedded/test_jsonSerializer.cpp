@@ -3,6 +3,7 @@
 
 #include <remote.h>
 #include <networks.h>
+#include <mqttConfig.h>
 #include <systemInfos.h>
 #include <jsonSerializer.h>
 
@@ -19,6 +20,7 @@ void RUN_JSONSERIALIZER_TESTS(void)
   RUN_TEST(test_METHOD_serializeSystemInfos_WITH_info_SHOULD_return_string);
   RUN_TEST(test_METHOD_serializeNetworks_WITH_one_network_SHOULD_return_string);
   RUN_TEST(test_METHOD_serializeNetworks_WITH_two_networks_SHOULD_return_string);
+  RUN_TEST(test_METHOD_serializeMQTTConfig_WITH_config_SHOULD_return_string);
 }
 
 void test_METHOD_serializeRemote_WITH_remote_SHOULD_return_string(void)
@@ -103,6 +105,17 @@ void test_METHOD_serializeNetworks_WITH_two_networks_SHOULD_return_string(void)
 
   String serialized = serializerTest.serializeNetworks(networks, 2);
   String expected = "[{\"ssid\":\"foo\",\"rssi\":-85},{\"ssid\":\"baz\",\"rssi\":-60}]";
+
+  TEST_ASSERT_EQUAL_STRING(expected.c_str(), serialized.c_str());
+}
+
+void test_METHOD_serializeMQTTConfig_WITH_config_SHOULD_return_string(void)
+{
+  MQTTConfiguration config = { true, "foo.bar", 1883, "foo", "bar" };
+
+  String serialized = serializerTest.serializeMQTTConfig(config);
+  String expected = "{\"enabled\":true,\"broker\":\"foo.bar\",\"port\":1883,\"username\":\"foo\","
+                    "\"password\":\"bar\"}";
 
   TEST_ASSERT_EQUAL_STRING(expected.c_str(), serialized.c_str());
 }

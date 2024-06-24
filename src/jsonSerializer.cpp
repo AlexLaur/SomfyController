@@ -30,6 +30,7 @@
 
 #include <remote.h>
 #include <networks.h>
+#include <mqttConfig.h>
 #include <systemInfos.h>
 
 #include <jsonSerializer.h>
@@ -102,11 +103,28 @@ String JSONSerializer::serializeNetworks(const Network networks[], int size)
   return output;
 };
 
-String JSONSerializer::serializeSystemInfos(const SystemInfos& infos){
+String JSONSerializer::serializeSystemInfos(const SystemInfos& infos)
+{
   JsonDocument doc;
   JsonObject object = doc.to<JsonObject>();
 
   object["version"] = infos.version;
+
+  String output;
+  serializeJson(doc, output);
+  return output;
+}
+
+String JSONSerializer::serializeMQTTConfig(const MQTTConfiguration& mqttConfig)
+{
+  JsonDocument doc;
+  JsonObject object = doc.to<JsonObject>();
+
+  object["enabled"] = mqttConfig.enabled;
+  object["broker"] = mqttConfig.broker;
+  object["port"] = mqttConfig.port;
+  object["username"] = mqttConfig.username;
+  object["password"] = mqttConfig.password;
 
   String output;
   serializeJson(doc, output);

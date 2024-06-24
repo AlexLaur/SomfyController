@@ -42,3 +42,5 @@ const unsigned short MAX_NETWORK_SCAN = 15;
 const unsigned short MAX_REMOTE_NAME_LENGTH = 17;  // 16 chars + 1 (\0)
 const unsigned short MAX_REMOTES = 16;
 const unsigned long REMOTE_BASE_ADDRESS = 0x100000;
+
+const unsigned short DEFAULT_MQTT_PORT = 1883;

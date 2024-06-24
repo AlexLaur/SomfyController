@@ -43,6 +43,7 @@ class JSONSerializer : public SerializerAbstract
   String serializeNetworkConfig(const NetworkConfiguration& networkConfig);
   String serializeNetworks(const Network networks[], int size);
   String serializeSystemInfos(const SystemInfos& infos);
+  String serializeMQTTConfig(const MQTTConfiguration& mqttConfig);
 
   private:
   void serializeRemote(JsonObject object, const Remote& remote);

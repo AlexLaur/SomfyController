@@ -27,10 +27,13 @@
  */
 #pragma once
 
-struct MQTTConfig
+#include <config.h>
+
+struct MQTTConfiguration
 {
-    char broker[65]; // allow 64 max length
-    unsigned short port;
-    char username[33]; // allow 32 chars max
-    char password[33];
+  bool enabled = false;
+  char broker[65]; // allow 64 max length
+  unsigned short port = DEFAULT_MQTT_PORT; // default to DEFAULT_MQTT_PORT
+  char username[33]; // allow 32 chars max
+  char password[33];
 };

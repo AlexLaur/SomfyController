@@ -283,11 +283,11 @@ bool EEPROMDatabase::updateRemote(const Remote& remote)
 /**
  * @brief Get the MQTT configuration
  *
- * @return MQTTConfig
+ * @return MQTTConfiguration
  */
-MQTTConfig EEPROMDatabase::getMQTTConfiguration()
+MQTTConfiguration EEPROMDatabase::getMQTTConfiguration()
 {
-  MQTTConfig mqttConfig;
+  MQTTConfiguration mqttConfig;
   EEPROM.get(this->m_mqttConfigAddressStart, mqttConfig);
   if (!this->stringIsAscii(mqttConfig.broker))
   {
@@ -308,7 +308,7 @@ MQTTConfig EEPROMDatabase::getMQTTConfiguration()
  * @return true if the update was done
  * @return false otherwise
  */
-bool EEPROMDatabase::setMQTTConfiguration(const MQTTConfig& mqttConfig)
+bool EEPROMDatabase::setMQTTConfiguration(const MQTTConfiguration& mqttConfig)
 {
   LOG_DEBUG("Saving new MQTT configuration...");
   EEPROM.put(this->m_mqttConfigAddressStart, mqttConfig);
@@ -404,7 +404,7 @@ void EEPROMDatabase::applyUpdate_2_1_0()
     EEPROM.put(this->m_remotesAddressStart + i * sizeof(Remote), remotes[i]);
   }
   // Create empty config for MQTT
-  MQTTConfig mqttConfig = { "", 0, "", "" };
+  MQTTConfiguration mqttConfig = { false, "", DEFAULT_MQTT_PORT, "", "" };
   EEPROM.put(this->m_mqttConfigAddressStart, mqttConfig);
   EEPROM.commit();
   LOG_INFO("2.1.0 patches applied.");

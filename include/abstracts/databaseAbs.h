@@ -50,6 +50,6 @@ class DatabaseAbstract
   virtual bool updateRemote(const Remote& remote) = 0;
   virtual bool deleteRemote(const unsigned long& id) = 0;
 
-  virtual MQTTConfig getMQTTConfiguration() = 0;
-  virtual bool setMQTTConfiguration(const MQTTConfig& mqttConfig) = 0;
+  virtual MQTTConfiguration getMQTTConfiguration() = 0;
+  virtual bool setMQTTConfiguration(const MQTTConfiguration& mqttConfig) = 0;
 };

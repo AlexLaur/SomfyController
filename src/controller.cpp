@@ -381,3 +381,82 @@ Result Controller::updateNetworkConfiguration(const char* ssid, const char* pass
   LOG_DEBUG("Network Configuration updated.");
   return result;
 }
+
+Result Controller::fetchMQTTConfiguration()
+{
+  LOG_DEBUG("Fetching MQTT Configuration...");
+  Result result;
+
+  MQTTConfiguration mqttConfig = this->m_database->getMQTTConfiguration();
+
+  result.isSuccess = true;
+  String serialized = this->m_serializer->serializeMQTTConfig(mqttConfig);
+  result.data = serialized;
+
+  return result;
+}
+
+Result Controller::updateMQTTConfiguration(const bool& enabled, const char* broker,
+    const unsigned short& port, const char* username, const char* password)
+{
+  LOG_DEBUG("Updating MQTT Configuration...");
+  Result result;
+
+  if (broker == nullptr)
+  {
+    LOG_ERROR("The broker should be specified.");
+    result.error = "The broker should be specified.";
+    return result;
+  }
+
+  if (port == 0)
+  {
+    LOG_ERROR("The port should be specified. It cannot be equal to 0.");
+    result.error = "The broker should be specified. It cannot be equal to 0.";
+    return result;
+  }
+
+  MQTTConfiguration mqttConfig;
+  mqttConfig.enabled = enabled;
+
+  if (strlen(broker) == 0)
+  {
+    LOG_WARN("The broker is empty. The MQTT will be disabled.");
+    mqttConfig.enabled = false;
+  }
+
+  strcpy(mqttConfig.broker, broker);
+  mqttConfig.port = port;
+
+  if (username == nullptr)
+  {
+    LOG_DEBUG("No username provided.");
+  }
+  else
+  {
+    strcpy(mqttConfig.username, username);
+  }
+
+  if (password == nullptr)
+  {
+    LOG_DEBUG("No username provided.");
+  }
+  else
+  {
+    strcpy(mqttConfig.password, password);
+  }
+
+  bool isUpdated = this->m_database->setMQTTConfiguration(mqttConfig);
+  if (!isUpdated)
+  {
+    LOG_ERROR("Something went wrong while updating the MQTT Configuration");
+    result.error = "Something went wrong while updating the MQTT Configuration";
+    return result;
+  }
+
+  result.isSuccess = true;
+  String serialized = this->m_serializer->serializeMQTTConfig(mqttConfig);
+  result.data = serialized;
+  LOG_DEBUG("MQTT Configuration updated.");
+  return result;
+}

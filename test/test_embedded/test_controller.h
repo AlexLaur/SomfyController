@@ -35,8 +35,8 @@ class FakeDatabase : public DatabaseAbstract
   bool updateRemote(const Remote& remote);
   bool deleteRemote(const unsigned long& id);
 
-  MQTTConfig getMQTTConfiguration();
-  bool setMQTTConfiguration(const MQTTConfig& mqttConfig);
+  MQTTConfiguration getMQTTConfiguration();
+  bool setMQTTConfiguration(const MQTTConfiguration& mqttConfig);
 };
 
 class FakeSerializer : public SerializerAbstract
@@ -47,6 +47,7 @@ class FakeSerializer : public SerializerAbstract
   String serializeNetworkConfig(const NetworkConfiguration& networkConfig);
   String serializeNetworks(const Network networks[], int size);
   String serializeSystemInfos(const SystemInfos& infos);
+  String serializeMQTTConfig(const MQTTConfiguration& mqttConfig);
 };
 
 class FakeTransmitter : public TransmitterAbstract
@@ -134,3 +135,12 @@ void test_METHOD_updateNetworkConfiguration_WITH_valid_data_AND_empty_password_S
 void test_METHOD_updateNetworkConfiguration_WITH_null_SSID_SHOULD_return_result_WITH_success_to_false(void);
 void test_METHOD_updateNetworkConfiguration_WITH_empty_SSID_SHOULD_return_result_WITH_success_to_false(void);
 void test_METHOD_updateNetworkConfiguration_WITH_update_fail_SHOULD_return_result_WITH_success_to_false(void);
+
+void test_METHOD_fetchMQTTConfiguration_SHOULD_return_result_WITH_success_to_true(void);
+
+void test_METHOD_updateMQTTConfiguration_WITH_valid_data_SHOULD_return_result_WITH_success_to_true(void);
+void test_METHOD_updateMQTTConfiguration_WITH_empty_port_SHOULD_return_result_WITH_success_to_false(void);
+void test_METHOD_updateMQTTConfiguration_WITH_null_broker_SHOULD_return_result_WITH_success_to_true_AND_enabled_to_false(void);
+void test_METHOD_updateMQTTConfiguration_WITH_null_username_SHOULD_return_result_WITH_success_to_true(void);
+void test_METHOD_updateMQTTConfiguration_WITH_null_password_SHOULD_return_result_WITH_success_to_true(void);
+void test_METHOD_updateMQTTConfiguration_WITH_update_fail_SHOULD_return_result_WITH_success_to_false(void);

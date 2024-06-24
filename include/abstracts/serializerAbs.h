@@ -30,6 +30,7 @@
 #include <Arduino.h>
 #include <remote.h>
 #include <networks.h>
+#include <mqttConfig.h>
 #include <systemInfos.h>
 
 class SerializerAbstract
@@ -40,4 +41,5 @@ class SerializerAbstract
   virtual String serializeNetworkConfig(const NetworkConfiguration& networkConfig) = 0;
   virtual String serializeNetworks(const Network networks[], int size) = 0;
   virtual String serializeSystemInfos(const SystemInfos& infos) = 0;
+  virtual String serializeMQTTConfig(const MQTTConfiguration& mqttConfig) = 0;
 };

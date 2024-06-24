@@ -51,6 +51,9 @@ class Controller
   Result fetchNetworkConfiguration();
   Result updateNetworkConfiguration(const char* ssid, const char* password);
 
+  Result fetchMQTTConfiguration();
+  Result updateMQTTConfiguration(const bool& enabled, const char* broker, const unsigned short& port, const char* username, const char* password);
+
   private:
   DatabaseAbstract* m_database;
   NetworkClientAbstract* m_networkClient;

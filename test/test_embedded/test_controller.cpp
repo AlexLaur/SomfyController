@@ -88,17 +88,19 @@ bool FakeDatabase::deleteRemote(const unsigned long& id)
   return true;
 }
 
-MQTTConfig FakeDatabase::getMQTTConfiguration(){
-  MQTTConfig conf = {"foo.foo", 1234, "foo", "bar"};
+MQTTConfiguration FakeDatabase::getMQTTConfiguration()
+{
+  MQTTConfiguration conf = { true, "foo.foo", 1234, "foo", "bar" };
   return conf;
 }
 
-bool FakeDatabase::setMQTTConfiguration(const MQTTConfig& mqttConfig){
+bool FakeDatabase::setMQTTConfiguration(const MQTTConfiguration& mqttConfig)
+{
   if (this->shouldFailUpdateMQTTConfiguration)
-    {
-      return false;
-    }
-    return true;
+  {
+    return false;
+  }
+  return true;
 }
 
 // Fake Serializer
@@ -122,6 +124,11 @@ String FakeSerializer::serializeNetworks(const Network networks[], int size)
 String FakeSerializer::serializeSystemInfos(const SystemInfos& infos)
 {
   return String("SystemInfos serialized");
+}
+
+String FakeSerializer::serializeMQTTConfig(const MQTTConfiguration& config)
+{
+  return String("MQTTConfiguration serialized");
 }
 
 // Fake Transmitter
@@ -168,7 +175,8 @@ FakeTransmitter transmitterFake;
 
 Controller controllerTest(&databaseFake, &networkClientFake, &serializerFake, &transmitterFake);
 
-void RUN_CONTROLLER_TESTS(void){
+void RUN_CONTROLLER_TESTS(void)
+{
   RUN_TEST(test_METHOD_fetchSystemInfos_SHOULD_return_systeminfos);
   RUN_TEST(test_METHOD_fetchRemote_WITH_unspecified_id_SHOULD_return_result_WITH_success_to_false);
   RUN_TEST(test_METHOD_fetchRemote_WITH_remote_not_found_SHOULD_return_result_WITH_success_to_false);
@@ -204,6 +212,12 @@ void RUN_CONTROLLER_TESTS(void){
   RUN_TEST(test_METHOD_updateNetworkConfiguration_WITH_null_SSID_SHOULD_return_result_WITH_success_to_false);
   RUN_TEST(test_METHOD_updateNetworkConfiguration_WITH_empty_SSID_SHOULD_return_result_WITH_success_to_false);
   RUN_TEST(test_METHOD_updateNetworkConfiguration_WITH_update_fail_SHOULD_return_result_WITH_success_to_false);
+  RUN_TEST(test_METHOD_updateMQTTConfiguration_WITH_valid_data_SHOULD_return_result_WITH_success_to_true);
+  RUN_TEST(test_METHOD_updateMQTTConfiguration_WITH_empty_port_SHOULD_return_result_WITH_success_to_false);
+  RUN_TEST(test_METHOD_updateMQTTConfiguration_WITH_null_broker_SHOULD_return_result_WITH_success_to_true_AND_enabled_to_false);
+  RUN_TEST(test_METHOD_updateMQTTConfiguration_WITH_null_username_SHOULD_return_result_WITH_success_to_true);
+  RUN_TEST(test_METHOD_updateMQTTConfiguration_WITH_null_password_SHOULD_return_result_WITH_success_to_true);
+  RUN_TEST(test_METHOD_updateMQTTConfiguration_WITH_update_fail_SHOULD_return_result_WITH_success_to_false);
 }
 
 void test_METHOD_fetchSystemInfos_SHOULD_return_systeminfos(void)
@@ -556,6 +570,77 @@ void test_METHOD_updateNetworkConfiguration_WITH_update_fail_SHOULD_return_resul
   FakeDatabase::shouldFailUpdateNetworkConfiguration = true;
 
   Result result = controllerTest.updateNetworkConfiguration("foo", nullptr);
+
+  TEST_ASSERT_EQUAL_STRING_LEN("", result.data.c_str(), 0);
+  TEST_ASSERT_FALSE(result.isSuccess);
+  TEST_ASSERT_GREATER_OR_EQUAL(1, result.error.length());
+}
+
+void test_METHOD_fetchMQTTConfiguration_SHOULD_return_result_WITH_success_to_true(void)
+{
+  Result result = controllerTest.fetchMQTTConfiguration();
+
+  TEST_ASSERT_EQUAL_STRING("MQTTConfiguration serialized", result.data.c_str());
+  TEST_ASSERT_TRUE(result.isSuccess);
+  TEST_ASSERT_EQUAL_STRING_LEN("", result.error.c_str(), 0);
+}
+
+void test_METHOD_updateMQTTConfiguration_WITH_valid_data_SHOULD_return_result_WITH_success_to_true(
+    void)
+{
+  Result result = controllerTest.updateMQTTConfiguration(true, "foo", 42, "bar", "baz");
+
+  TEST_ASSERT_EQUAL_STRING("MQTTConfiguration serialized", result.data.c_str());
+  TEST_ASSERT_TRUE(result.isSuccess);
+  TEST_ASSERT_EQUAL_STRING_LEN("", result.error.c_str(), 0);
+}
+
+void test_METHOD_updateMQTTConfiguration_WITH_empty_port_SHOULD_return_result_WITH_success_to_false(
+    void)
+{
+  Result result = controllerTest.updateMQTTConfiguration(true, "foo", 0, "bar", "baz");
+
+  TEST_ASSERT_EQUAL_STRING_LEN("", result.data.c_str(), 0);
+  TEST_ASSERT_FALSE(result.isSuccess);
+  TEST_ASSERT_GREATER_OR_EQUAL(1, result.error.length());
+}
+
+void test_METHOD_updateMQTTConfiguration_WITH_null_broker_SHOULD_return_result_WITH_success_to_true_AND_enabled_to_false(
+    void)
+{
+  Result result = controllerTest.updateMQTTConfiguration(true, nullptr, 42, "bar", "baz");
+
+  TEST_ASSERT_EQUAL_STRING_LEN("", result.data.c_str(), 0);
+  TEST_ASSERT_FALSE(result.isSuccess);
+  TEST_ASSERT_GREATER_OR_EQUAL(1, result.error.length());
+}
+
+void test_METHOD_updateMQTTConfiguration_WITH_null_username_SHOULD_return_result_WITH_success_to_true(
+    void)
+{
+  Result result = controllerTest.updateMQTTConfiguration(true, "foo", 42, nullptr, "bar");
+
+  TEST_ASSERT_EQUAL_STRING("MQTTConfiguration serialized", result.data.c_str());
+  TEST_ASSERT_TRUE(result.isSuccess);
+  TEST_ASSERT_EQUAL_STRING_LEN("", result.error.c_str(), 0);
+}
+
+void test_METHOD_updateMQTTConfiguration_WITH_null_password_SHOULD_return_result_WITH_success_to_true(
+    void)
+{
+  Result result = controllerTest.updateMQTTConfiguration(true, "foo", 42, "baz", nullptr);
+
+  TEST_ASSERT_EQUAL_STRING("MQTTConfiguration serialized", result.data.c_str());
+  TEST_ASSERT_TRUE(result.isSuccess);
+  TEST_ASSERT_EQUAL_STRING_LEN("", result.error.c_str(), 0);
+}
+
+void test_METHOD_updateMQTTConfiguration_WITH_update_fail_SHOULD_return_result_WITH_success_to_false(
+    void)
+{
+  FakeDatabase::shouldFailUpdateMQTTConfiguration = true;
+
+  Result result = controllerTest.updateMQTTConfiguration(true, "foo", 42, "bar", "baz");
 
   TEST_ASSERT_EQUAL_STRING_LEN("", result.data.c_str(), 0);
   TEST_ASSERT_FALSE(result.isSuccess);

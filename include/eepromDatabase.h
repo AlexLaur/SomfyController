@@ -55,14 +55,14 @@ class EEPROMDatabase : public DatabaseAbstract
   bool deleteRemote(const unsigned long& id);
 
   // MQTT Configuration
-  MQTTConfig getMQTTConfiguration();
-  bool setMQTTConfiguration(const MQTTConfig& mqttConfig);
+  MQTTConfiguration getMQTTConfiguration();
+  bool setMQTTConfiguration(const MQTTConfiguration& mqttConfig);
 
   private:
   int m_lastSystemInfosAddressStart = 0;
   int m_networkConfigAddressStart = sizeof(SystemInfos);
   int m_mqttConfigAddressStart = sizeof(SystemInfos) + sizeof(NetworkConfiguration);
-  int m_remotesAddressStart = sizeof(SystemInfos) + sizeof(NetworkConfiguration) + sizeof(MQTTConfig);
+  int m_remotesAddressStart = sizeof(SystemInfos) + sizeof(NetworkConfiguration) + sizeof(MQTTConfiguration);
 
   bool migrate();
   bool stringIsAscii(const char* data);
