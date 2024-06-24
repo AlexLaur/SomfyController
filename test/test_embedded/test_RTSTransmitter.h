@@ -1,0 +1,10 @@
+#pragma once
+
+void RUN_RTSTRANSMITTER_TESTS(void);
+void compareFramesArray(byte expected[], byte actual[], int size);
+
+void test_METHOD_sendUpCommand_WITH_remote_SHOULD_return_true_AND_build_specific_frame(void);
+void test_METHOD_sendStopCommand_WITH_remote_SHOULD_return_true_AND_build_specific_frame(void);
+void test_METHOD_sendDownCommand_WITH_remote_SHOULD_return_true_AND_build_specific_frame(void);
+void test_METHOD_sendProgCommand_WITH_remote_SHOULD_return_true_AND_build_specific_frame(void);
+
