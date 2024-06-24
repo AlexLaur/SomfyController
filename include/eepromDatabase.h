@@ -69,5 +69,5 @@ class EEPROMDatabase : public DatabaseAbstract
   int getRemoteIndex(const unsigned long& id);
 
   // Migrations
-  void apply2_1_0_update();
+  void applyUpdate_2_1_0();
 };

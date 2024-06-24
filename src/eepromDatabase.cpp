@@ -372,7 +372,7 @@ bool EEPROMDatabase::migrate()
   // Apply migrations here.
   if (strcmp(FIRMWARE_VERSION, "2.1.0") == 0)
   {
-    this->apply2_1_0_update();
+    this->applyUpdate_2_1_0();
   }
 
   // Then, save new version
@@ -388,7 +388,7 @@ bool EEPROMDatabase::migrate()
  * @brief In this version, we introduce MQTT config between NetworkConfig and Remotes.
  * We need to get all remotes, and moved to another address.
  */
-void EEPROMDatabase::apply2_1_0_update()
+void EEPROMDatabase::applyUpdate_2_1_0()
 {
   LOG_INFO("Applying 2.1.0 patches...");
   Remote remotes[MAX_REMOTES];
