@@ -61,8 +61,8 @@ class EEPROMDatabase : public DatabaseAbstract
   private:
   int m_lastSystemInfosAddressStart = 0;
   int m_networkConfigAddressStart = sizeof(SystemInfos);
-  int m_mqttConfigAddressStart = sizeof(SystemInfos) + sizeof(MQTTConfig);
-  int m_remotesAddressStart = sizeof(SystemInfos) + sizeof(MQTTConfig) + sizeof(NetworkConfiguration);
+  int m_mqttConfigAddressStart = sizeof(SystemInfos) + sizeof(NetworkConfiguration);
+  int m_remotesAddressStart = sizeof(SystemInfos) + sizeof(NetworkConfiguration) + sizeof(MQTTConfig);
 
   bool migrate();
   bool stringIsAscii(const char* data);
