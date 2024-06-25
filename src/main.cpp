@@ -1,5 +1,5 @@
 /**
- * @file SomfyController.ino
+ * @file main.cpp
  * @author Laurette Alexandre
  * @brief Control SOMFY blinds.
  * @version 2.1.0
@@ -105,7 +105,7 @@ void handleFetchWifiConfiguration(AsyncWebServerRequest* request)
 
 void handleUpdateWifiConfiguration(AsyncWebServerRequest* request)
 {
-  LOG_INFO("Endpoint to update the Wifi Wonfiguration reached.");
+  LOG_INFO("Endpoint to update the Wifi Configuration reached.");
 
   String ssid;
   String password;
@@ -126,7 +126,69 @@ void handleUpdateWifiConfiguration(AsyncWebServerRequest* request)
     request->send(400, "application/json", "{\"message\":\"" + result.error + "\"}");
     return;
   }
-  request->send(201, "application/json", result.data);
+  request->send(200, "application/json", result.data);
+}
+
+void handleFetchMQTTConfiguration(AsyncWebServerRequest* request)
+{
+  LOG_INFO("Endpoint to fetch MQTT Configuration reached.");
+
+  Result result = controller.fetchMQTTConfiguration();
+  if (!result.isSuccess)
+  {
+    request->send(400, "application/json", "{\"message\":\"" + result.error + "\"}");
+    return;
+  }
+  request->send(200, "application/json", result.data);
+}
+
+void handleUpdateMQTTConfiguration(AsyncWebServerRequest* request)
+{
+  LOG_INFO("Endpoint to update the MQTT Wonfiguration reached.");
+
+  bool enabled = false;
+  String broker;
+  unsigned short port = 0;
+  String username;
+  String password;
+
+  if (request->hasParam("broker", true))
+  {
+    AsyncWebParameter* p = request->getParam("broker", true);
+    broker = p->value();
+  }
+  if (request->hasParam("username", true))
+  {
+    AsyncWebParameter* p = request->getParam("username", true);
+    username = p->value();
+  }
+  if (request->hasParam("password", true))
+  {
+    AsyncWebParameter* p = request->getParam("password", true);
+    password = p->value();
+  }
+  if (request->hasParam("port", true))
+  {
+    AsyncWebParameter* p = request->getParam("port", true);
+    port = p->value().toInt();
+  }
+  if (request->hasParam("enabled", true))
+  {
+    AsyncWebParameter* p = request->getParam("enabled", true);
+    if (p->value() == "true" || p->value() == "True")
+    {
+      enabled = true;
+    }
+  }
+
+  Result result = controller.updateMQTTConfiguration(
+      enabled, broker.c_str(), port, username.c_str(), password.c_str());
+  if (!result.isSuccess)
+  {
+    request->send(400, "application/json", "{\"message\":\"" + result.error + "\"}");
+    return;
+  }
+  request->send(200, "application/json", result.data);
 }
 
 void handleFetchAllRemotes(AsyncWebServerRequest* request)
@@ -313,6 +375,8 @@ void setup()
   server.on("/api/v1/wifi/networks", HTTP_GET, handleFetchWifiNetworks);
   server.on("/api/v1/wifi/config", HTTP_GET, handleFetchWifiConfiguration);
   server.on("/api/v1/wifi/config", HTTP_POST, handleUpdateWifiConfiguration);
+  server.on("/api/v1/mqtt/config", HTTP_GET, handleFetchMQTTConfiguration);
+  server.on("/api/v1/mqtt/config", HTTP_POST, handleUpdateMQTTConfiguration);
   server.on("^\\/api/v1/remotes$", HTTP_GET, handleFetchAllRemotes);
   server.on("^\\/api/v1/remotes$", HTTP_POST, handleCreateRemote);
   server.on("^\\/api/v1/remotes\\/([0-9]+)$", HTTP_GET, handleFetchRemote);
