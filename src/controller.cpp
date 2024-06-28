@@ -144,6 +144,9 @@ Result Controller::createRemote(const char* name)
   result.isSuccess = true;
   String serialized = this->m_serializer->serializeRemote(remote);
   result.data = serialized;
+
+  this->notify("remote-create", serialized.c_str());
+
   LOG_DEBUG("Remote created.");
   return result;
 }
@@ -159,6 +162,13 @@ Result Controller::deleteRemote(const unsigned long id)
     return result;
   }
 
+  Remote remote = this->m_database->getRemote(id);
+  if (remote.id == 0){
+    LOG_ERROR("The given remote doesn't exist in the database.");
+    result.error = "The given remote doesn't exist in the database.";
+    return result;
+  }
+
   bool isDeleted = this->m_database->deleteRemote(id);
 
   if (!isDeleted)
@@ -169,6 +179,11 @@ Result Controller::deleteRemote(const unsigned long id)
   }
 
   result.isSuccess = true;
+  String serialized = this->m_serializer->serializeRemote(remote);
+  result.data = serialized;
+
+  this->notify("remote-delete", serialized.c_str());
+
   LOG_DEBUG("Remote deleted.");
   return result;
 }
@@ -238,6 +253,9 @@ Result Controller::updateRemote(
   result.isSuccess = true;
   String serialized = this->m_serializer->serializeRemote(remote);
   result.data = serialized;
+
+  this->notify("remote-update", serialized.c_str());
+
   LOG_DEBUG("Remote updated.");
   return result;
 }
@@ -276,28 +294,34 @@ Result Controller::operateRemote(const unsigned long id, const char* action)
     return result;
   }
 
+  String serialized = this->m_serializer->serializeRemote(remote);
+
   if (strcmp(action, "up") == 0)
   {
     LOG_INFO("Operate 'UP'.");
     this->m_transmitter->sendUpCmd(remote.id, remote.rollingCode);
+    this->notify("remote-up", serialized.c_str());
     result.data = "Command UP sent.";
   }
   else if (strcmp(action, "stop") == 0)
   {
     LOG_INFO("Operate 'STOP'.");
     this->m_transmitter->sendStopCmd(remote.id, remote.rollingCode);
+    this->notify("remote-stop", serialized.c_str());
     result.data = "Command STOP sent.";
   }
   else if (strcmp(action, "down") == 0)
   {
     LOG_INFO("Operate 'DOWN'.");
     this->m_transmitter->sendDownCmd(remote.id, remote.rollingCode);
+    this->notify("remote-down", serialized.c_str());
     result.data = "Command DOWN sent.";
   }
   else if (strcmp(action, "pair") == 0)
   {
     LOG_INFO("Operate 'PAIR'.");
     this->m_transmitter->sendProgCmd(remote.id, remote.rollingCode);
+    this->notify("remote-pair", serialized.c_str());
     result.data = "Command PAIR sent.";
   }
   else if (strcmp(action, "reset") == 0)
@@ -307,6 +331,7 @@ Result Controller::operateRemote(const unsigned long id, const char* action)
     this->m_database->updateRemote(remote);
     result.isSuccess = true;
     result.data = "Rolling code reseted.";
+    this->notify("remote-reset", serialized.c_str());
     return result;
   }
   else
@@ -319,6 +344,10 @@ Result Controller::operateRemote(const unsigned long id, const char* action)
   result.isSuccess = true;
   remote.rollingCode += 1; // increment rollingCode
   this->m_database->updateRemote(remote);
+
+  serialized = this->m_serializer->serializeRemote(remote);
+  this->notify("remote-update", serialized.c_str());
+
   LOG_INFO("Command sent through the remote", remote.id);
   return result;
 }

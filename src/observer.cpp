@@ -1,7 +1,7 @@
 /**
- * @file config.h
+ * @file observer.cpp
  * @author Laurette Alexandre
- * @brief Configuration for SOMFY Controller.
+ * @brief Implementation for Observer pattern.
  * @version 2.1.0
  * @date 2024-06-06
  *
@@ -25,23 +25,50 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-#pragma once
+#include <DebugLog.h>
 
-const char APP_NAME[] = "ESP-RTSomfy";
-const char FIRMWARE_VERSION[] = "2.1.0";
+#include <observer.h>
 
-const char AP_SSID[] = "ESP-RTSomfy Fallback Hotspot";
-const char AP_PASSWORD[] = "5cKErSRCyQzy";
+void Subject::attach(Observer* observer)
+{
+  short freeIndex = -1;
+  for (unsigned short i = 0; i < sizeof(this->m_observers) / sizeof(this->m_observers[0]); ++i)
+  {
+    if (this->m_observers[i] == nullptr)
+    {
+      freeIndex = i;
+      break;
+    }
+  }
 
-const unsigned short SERVER_PORT = 80;
+  if (freeIndex == -1)
+  {
+    LOG_ERROR("Cannot add a new observer. No space left to store another observer.");
+    return;
+  }
+  this->m_observers[freeIndex] = observer;
+}
 
-const unsigned short MAX_NETWORK_SCAN = 15;
+void Subject::deattach(Observer* observer)
+{
+  for (unsigned short i = 0; i < sizeof(this->m_observers) / sizeof(this->m_observers[0]); ++i)
+  {
+    if (observer == this->m_observers[i])
+    {
+      this->m_observers[i] = nullptr;
+    }
+  }
+}
 
-// Only 16 chars for the name.
-// Warning: Increase with value will take more space in the database.
-// If some remotes exists. These will be erase.
-const unsigned short MAX_REMOTE_NAME_LENGTH = 17;  // 16 chars + 1 (\0)
-const unsigned short MAX_REMOTES = 16;
-const unsigned long REMOTE_BASE_ADDRESS = 0x100000;
-
-const unsigned short DEFAULT_MQTT_PORT = 1883;
+void Subject::notify(const char* action, const char* data)
+{
+  LOG_DEBUG("A message will be delivered to all observers.");
+  for (unsigned short i = 0; i < sizeof(this->m_observers) / sizeof(this->m_observers[0]); ++i)
+  {
+    if (this->m_observers[i] == nullptr)
+    {
+      continue;
+    }
+    this->m_observers[i]->notified(action, data);
+  }
+}

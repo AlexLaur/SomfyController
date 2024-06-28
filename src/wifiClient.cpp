@@ -1,5 +1,5 @@
 /**
- * @file wifiClient.cpp
+ * @file WifiClient.cpp
  * @author Laurette Alexandre
  * @brief Implementation for wifi client.
  * @version 2.1.0
@@ -39,7 +39,7 @@
  * @return true, if the device is connected to the network
  * @return false, otherwise
  */
-bool WifiClient::connect(const NetworkConfiguration& conf)
+bool NetworkWifiClient::connect(const NetworkConfiguration& conf)
 {
   return this->connect(conf.ssid, conf.password);
 }
@@ -52,7 +52,7 @@ bool WifiClient::connect(const NetworkConfiguration& conf)
  * @return true, if the device is connected to the network
  * @return false, otherwise
  */
-bool WifiClient::connect(const char* ssid, const char* password)
+bool NetworkWifiClient::connect(const char* ssid, const char* password)
 {
   LOG_DEBUG("Trying to connect to the WiFi...");
   LOG_DEBUG("SSID provided: ", ssid);
@@ -87,7 +87,7 @@ bool WifiClient::connect(const char* ssid, const char* password)
  *
  * @return String
  */
-String WifiClient::getIP() { return WiFi.localIP().toString(); };
+String NetworkWifiClient::getIP() { return WiFi.localIP().toString(); };
 
 /**
  * @brief Is Connected to a network ?
@@ -95,14 +95,14 @@ String WifiClient::getIP() { return WiFi.localIP().toString(); };
  * @return true, if connected
  * @return false, otherwise
  */
-bool WifiClient::isConnected() { return (WiFi.status() == WL_CONNECTED); };
+bool NetworkWifiClient::isConnected() { return (WiFi.status() == WL_CONNECTED); };
 
 /**
  * @brief Return the list of Network found
  *
  * @param networks Array of Networks.
  */
-void WifiClient::getNetworks(Network networks[])
+void NetworkWifiClient::getNetworks(Network networks[])
 {
   WiFi.mode(WIFI_STA);
   WiFi.disconnect();

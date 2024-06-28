@@ -30,7 +30,7 @@
 #include <networks.h>
 #include <networkClientAbs.h>
 
-class WifiClient : public NetworkClientAbstract
+class NetworkWifiClient : public NetworkClientAbstract
 {
   public:
   bool connect(const NetworkConfiguration& conf);

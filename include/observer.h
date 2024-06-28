@@ -1,7 +1,7 @@
 /**
- * @file controller.h
+ * @file observer.h
  * @author Laurette Alexandre
- * @brief Header of the controller of the application.
+ * @brief Header for Observer pattern.
  * @version 2.1.0
  * @date 2024-06-06
  *
@@ -27,37 +27,19 @@
  */
 #pragma once
 
-#include <result.h>
-#include <observer.h>
-#include <databaseAbs.h>
-#include <serializerAbs.h>
-#include <transmitterAbs.h>
-#include <networkClientAbs.h>
-
-class Controller : public Subject
+class Observer
 {
   public:
-  Controller(DatabaseAbstract* database, NetworkClientAbstract* networkClient, SerializerAbstract* serializer,
-      TransmitterAbstract* transmitter);
+  virtual void notified(const char* action, const char* data) = 0;
+};
 
-  Result fetchSystemInfos();
-
-  Result fetchRemote(const unsigned long id);
-  Result fetchAllRemotes();
-  Result createRemote(const char* name);
-  Result deleteRemote(const unsigned long id);
-  Result updateRemote(const unsigned long id, const char* name, const unsigned int rollingCode);
-  Result operateRemote(const unsigned long id, const char* action);
-
-  Result fetchNetworkConfiguration();
-  Result updateNetworkConfiguration(const char* ssid, const char* password);
-
-  Result fetchMQTTConfiguration();
-  Result updateMQTTConfiguration(const bool& enabled, const char* broker, const unsigned short& port, const char* username, const char* password);
+class Subject
+{
+  public:
+  void attach(Observer* observer);
+  void deattach(Observer* observer);
+  void notify(const char* action, const char* data);
 
   private:
-  DatabaseAbstract* m_database;
-  NetworkClientAbstract* m_networkClient;
-  SerializerAbstract* m_serializer;
-  TransmitterAbstract* m_transmitter;
+  Observer* m_observers[2] = { nullptr, nullptr }; // Allow only 2 observers (MQTT and WebServer)
 };
