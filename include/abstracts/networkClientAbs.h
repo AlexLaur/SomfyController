@@ -35,6 +35,7 @@ class NetworkClientAbstract
   virtual bool connect(const NetworkConfiguration& conf) = 0;
   virtual bool connect(const char* ssid, const char* password) = 0;
   virtual String getIP() = 0;
+  virtual String getMacAddress() = 0;
   virtual bool isConnected() = 0;
   virtual void getNetworks(Network networks[]) = 0;
 };

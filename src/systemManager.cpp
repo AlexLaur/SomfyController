@@ -1,7 +1,7 @@
 /**
- * @file jsonSerializer.h
+ * @file systemManager.cpp
  * @author Laurette Alexandre
- * @brief Header for JSON serialization.
+ * @brief Implementation of System Management.
  * @version 2.1.0
  * @date 2024-06-06
  *
@@ -25,28 +25,20 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-#pragma once
 
 #include <Arduino.h>
-#include <ArduinoJson.h>
+#include <systemManager.h>
 
-#include <remote.h>
-#include <networks.h>
-#include <systemInfos.h>
-#include <serializerAbs.h>
+void SystemManager::handleActions(){
+    unsigned long t = millis();
+    if (t - this->m_lastHandled >= 500){
+        this->m_lastHandled = t;
+        if(this->m_restartRequested){
+            ESP.restart();
+        }
+    }
+}
 
-class JSONSerializer : public SerializerAbstract
-{
-  public:
-  String serializeMessage(const char* message);
-  String serializeRemote(const Remote& remote);
-  String serializeRemotes(const Remote remotes[], int size);
-  String serializeNetworkConfig(const NetworkConfiguration& networkConfig);
-  String serializeNetworks(const Network networks[], int size);
-  String serializeSystemInfos(const SystemInfos& infos);
-  String serializeSystemInfos(const SystemInfosExtended& infos);
-  String serializeMQTTConfig(const MQTTConfiguration& mqttConfig);
-
-  private:
-  void serializeRemote(JsonObject object, const Remote& remote);
-};
+void SystemManager::requestRestart(){
+    this->m_restartRequested = true;
+}

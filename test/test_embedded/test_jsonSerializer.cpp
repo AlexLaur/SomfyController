@@ -13,14 +13,31 @@ JSONSerializer serializerTest;
 
 void RUN_JSONSERIALIZER_TESTS(void)
 {
+  RUN_TEST(test_MEHTOD_serializeMessage_WITH_message_SHOULD_return_string);
   RUN_TEST(test_METHOD_serializeRemote_WITH_remote_SHOULD_return_string);
   RUN_TEST(test_METHOD_serializeRemotes_WITH_two_remotes_SHOULD_return_string);
   RUN_TEST(test_METHOD_serializeRemotes_WITH_one_remote_SHOULD_return_string);
   RUN_TEST(test_METHOD_serializeNetworkConfig_WITH_config_SHOULD_return_string);
   RUN_TEST(test_METHOD_serializeSystemInfos_WITH_info_SHOULD_return_string);
+  RUN_TEST(test_METHOD_serializeSystemInfos_WITH_info_extended_SHOULD_return_string);
   RUN_TEST(test_METHOD_serializeNetworks_WITH_one_network_SHOULD_return_string);
   RUN_TEST(test_METHOD_serializeNetworks_WITH_two_networks_SHOULD_return_string);
   RUN_TEST(test_METHOD_serializeMQTTConfig_WITH_config_SHOULD_return_string);
+}
+
+void test_MEHTOD_serializeMessage_WITH_message_SHOULD_return_string(void)
+{
+  char messageA[] = "foo";
+  String serializedA = serializerTest.serializeMessage(messageA);
+  String expectedA = "{\"message\":\"foo\"}";
+
+  TEST_ASSERT_EQUAL_STRING(expectedA.c_str(), serializedA.c_str());
+
+  char messageB[] = "Hello World";
+  String serializedB = serializerTest.serializeMessage(messageB);
+  String expectedB = "{\"message\":\"Hello World\"}";
+
+  TEST_ASSERT_EQUAL_STRING(expectedB.c_str(), serializedB.c_str());
 }
 
 void test_METHOD_serializeRemote_WITH_remote_SHOULD_return_string(void)
@@ -80,6 +97,16 @@ void test_METHOD_serializeSystemInfos_WITH_info_SHOULD_return_string(void)
 
   String serialized = serializerTest.serializeSystemInfos(infos);
   String expected = "{\"version\":\"1.0.0\"}";
+
+  TEST_ASSERT_EQUAL_STRING(expected.c_str(), serialized.c_str());
+}
+
+void test_METHOD_serializeSystemInfos_WITH_info_extended_SHOULD_return_string(void)
+{
+  SystemInfosExtended infos = { "1.0.0", "FF:FF:FF:FF:FF:FF" };
+
+  String serialized = serializerTest.serializeSystemInfos(infos);
+  String expected = "{\"version\":\"1.0.0\",\"mac\":\"FF:FF:FF:FF:FF:FF\"}";
 
   TEST_ASSERT_EQUAL_STRING(expected.c_str(), serialized.c_str());
 }

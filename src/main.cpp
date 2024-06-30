@@ -31,6 +31,7 @@
 #include <LittleFS.h>
 #include <ESP8266WiFi.h>
 
+#include <utils.h>
 #include <config.h>
 #include <remote.h>
 #include <networks.h>
@@ -38,19 +39,21 @@
 #include <controller.h>
 #include <wifiClient.h>
 #include <mqttClient.h>
+#include <systemManager.h>
 #include <wifiAccessPoint.h>
 #include <RTSTransmitter.h>
 #include <eepromDatabase.h>
 #include <jsonSerializer.h>
 
-EEPROMDatabase database;
 NetworkWifiClient wifiClient;
 WifiAccessPoint wifiAP;
 JSONSerializer serializer;
+EEPROMDatabase database(macToLong(wifiClient.getMacAddress().c_str()));
+SystemManager systemManager;
 RTSTransmitter transmitter;
 
 Network networks[MAX_NETWORK_SCAN];
-Controller controller(&database, &wifiClient, &serializer, &transmitter);
+Controller controller(&database, &wifiClient, &serializer, &transmitter, &systemManager);
 
 MQTTClient mqttClient(&controller);
 WebServer server(SERVER_PORT, &controller);
@@ -146,5 +149,6 @@ void loop()
 {
   // put your main code here, to run repeatedly:
   mqttClient.handleMessages();
+  systemManager.handleActions();
 }
 #endif // PIO_UNIT_TESTING

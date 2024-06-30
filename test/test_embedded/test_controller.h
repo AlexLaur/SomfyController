@@ -8,6 +8,17 @@
 #include <serializerAbs.h>
 #include <transmitterAbs.h>
 #include <networkClientAbs.h>
+#include <systemManagerAbs.h>
+
+class FakeSystemManager : public SystemManagerAbstract
+{
+  public:
+  // For tests
+  static bool requestRestartCalled;
+
+  void handleActions();
+  void requestRestart();
+};
 
 class FakeDatabase : public DatabaseAbstract
 {
@@ -42,11 +53,13 @@ class FakeDatabase : public DatabaseAbstract
 class FakeSerializer : public SerializerAbstract
 {
   public:
+  String serializeMessage(const char* message);
   String serializeRemote(const Remote& remote);
   String serializeRemotes(const Remote remotes[], int size);
   String serializeNetworkConfig(const NetworkConfiguration& networkConfig);
   String serializeNetworks(const Network networks[], int size);
   String serializeSystemInfos(const SystemInfos& infos);
+  String serializeSystemInfos(const SystemInfosExtended& infos);
   String serializeMQTTConfig(const MQTTConfiguration& mqttConfig);
 };
 
@@ -70,6 +83,7 @@ class FakeNetworkClient : public NetworkClientAbstract
   bool connect(const NetworkConfiguration& conf);
   bool connect(const char* ssid, const char* password);
   String getIP();
+  String getMacAddress();
   bool isConnected();
   void getNetworks(Network networks[]);
 };
@@ -79,6 +93,8 @@ class FakeNetworkClient : public NetworkClientAbstract
 void RUN_CONTROLLER_TESTS(void);
 
 void test_METHOD_fetchSystemInfos_SHOULD_return_systeminfos(void);
+
+void test_METHOD_askSystemRestart_SHOULD_return_request_a_restart_AND_return_result_WITH_success_to_true(void);
 
 void test_METHOD_fetchRemote_WITH_unspecified_id_SHOULD_return_result_WITH_success_to_false(void);
 void test_METHOD_fetchRemote_WITH_remote_not_found_SHOULD_return_result_WITH_success_to_false(void);
@@ -130,17 +146,28 @@ void test_METHOD_operateRemote_WITH_valide_remote_AND_reset_action_SHOULD_return
 
 void test_METHOD_fetchNetworkConfiguration_SHOULD_return_result_WITH_success_to_true(void);
 
-void test_METHOD_updateNetworkConfiguration_WITH_valid_data_SHOULD_return_result_WITH_success_to_true(void);
-void test_METHOD_updateNetworkConfiguration_WITH_valid_data_AND_empty_password_SHOULD_return_result_WITH_success_to_true(void);
-void test_METHOD_updateNetworkConfiguration_WITH_null_SSID_SHOULD_return_result_WITH_success_to_false(void);
-void test_METHOD_updateNetworkConfiguration_WITH_empty_SSID_SHOULD_return_result_WITH_success_to_false(void);
-void test_METHOD_updateNetworkConfiguration_WITH_update_fail_SHOULD_return_result_WITH_success_to_false(void);
+void test_METHOD_updateNetworkConfiguration_WITH_valid_data_SHOULD_return_result_WITH_success_to_true(
+    void);
+void test_METHOD_updateNetworkConfiguration_WITH_valid_data_AND_empty_password_SHOULD_return_result_WITH_success_to_true(
+    void);
+void test_METHOD_updateNetworkConfiguration_WITH_null_SSID_SHOULD_return_result_WITH_success_to_false(
+    void);
+void test_METHOD_updateNetworkConfiguration_WITH_empty_SSID_SHOULD_return_result_WITH_success_to_false(
+    void);
+void test_METHOD_updateNetworkConfiguration_WITH_update_fail_SHOULD_return_result_WITH_success_to_false(
+    void);
 
 void test_METHOD_fetchMQTTConfiguration_SHOULD_return_result_WITH_success_to_true(void);
 
-void test_METHOD_updateMQTTConfiguration_WITH_valid_data_SHOULD_return_result_WITH_success_to_true(void);
-void test_METHOD_updateMQTTConfiguration_WITH_empty_port_SHOULD_return_result_WITH_success_to_false(void);
-void test_METHOD_updateMQTTConfiguration_WITH_null_broker_SHOULD_return_result_WITH_success_to_true_AND_enabled_to_false(void);
-void test_METHOD_updateMQTTConfiguration_WITH_null_username_SHOULD_return_result_WITH_success_to_true(void);
-void test_METHOD_updateMQTTConfiguration_WITH_null_password_SHOULD_return_result_WITH_success_to_true(void);
-void test_METHOD_updateMQTTConfiguration_WITH_update_fail_SHOULD_return_result_WITH_success_to_false(void);
+void test_METHOD_updateMQTTConfiguration_WITH_valid_data_SHOULD_return_result_WITH_success_to_true(
+    void);
+void test_METHOD_updateMQTTConfiguration_WITH_empty_port_SHOULD_return_result_WITH_success_to_false(
+    void);
+void test_METHOD_updateMQTTConfiguration_WITH_null_broker_SHOULD_return_result_WITH_success_to_true_AND_enabled_to_false(
+    void);
+void test_METHOD_updateMQTTConfiguration_WITH_null_username_SHOULD_return_result_WITH_success_to_true(
+    void);
+void test_METHOD_updateMQTTConfiguration_WITH_null_password_SHOULD_return_result_WITH_success_to_true(
+    void);
+void test_METHOD_updateMQTTConfiguration_WITH_update_fail_SHOULD_return_result_WITH_success_to_false(
+    void);

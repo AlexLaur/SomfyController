@@ -1,7 +1,7 @@
 /**
- * @file jsonSerializer.h
+ * @file systemManagerAbs.h
  * @author Laurette Alexandre
- * @brief Header for JSON serialization.
+ * @brief Header of System Management abstraction.
  * @version 2.1.0
  * @date 2024-06-06
  *
@@ -27,26 +27,9 @@
  */
 #pragma once
 
-#include <Arduino.h>
-#include <ArduinoJson.h>
-
-#include <remote.h>
-#include <networks.h>
-#include <systemInfos.h>
-#include <serializerAbs.h>
-
-class JSONSerializer : public SerializerAbstract
+class SystemManagerAbstract
 {
   public:
-  String serializeMessage(const char* message);
-  String serializeRemote(const Remote& remote);
-  String serializeRemotes(const Remote remotes[], int size);
-  String serializeNetworkConfig(const NetworkConfiguration& networkConfig);
-  String serializeNetworks(const Network networks[], int size);
-  String serializeSystemInfos(const SystemInfos& infos);
-  String serializeSystemInfos(const SystemInfosExtended& infos);
-  String serializeMQTTConfig(const MQTTConfiguration& mqttConfig);
-
-  private:
-  void serializeRemote(JsonObject object, const Remote& remote);
+  virtual void handleActions() = 0;
+  virtual void requestRestart() = 0;
 };

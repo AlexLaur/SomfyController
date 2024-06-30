@@ -27,7 +27,24 @@
  */
 #pragma once
 
+#include <Arduino.h>
+
+/**
+ * @brief SystemInfos struct is stored in the database.
+ *
+ */
 struct SystemInfos
 {
   char version[8]; // Allow x.xx.xx
+};
+
+/**
+ * @brief SystemInfosExtended is not stored in the database and hold other attributes
+ * fetched from some adapters in the application.
+ *
+ */
+struct SystemInfosExtended
+{
+  char version[8]; // Allow x.xx.xx
+  String macAddress;
 };

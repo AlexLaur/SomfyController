@@ -32,15 +32,17 @@
 #include <databaseAbs.h>
 #include <serializerAbs.h>
 #include <transmitterAbs.h>
+#include <systemManagerAbs.h>
 #include <networkClientAbs.h>
 
 class Controller : public Subject
 {
   public:
   Controller(DatabaseAbstract* database, NetworkClientAbstract* networkClient, SerializerAbstract* serializer,
-      TransmitterAbstract* transmitter);
+      TransmitterAbstract* transmitter, SystemManagerAbstract* systemManager);
 
   Result fetchSystemInfos();
+  Result askSystemRestart();
 
   Result fetchRemote(const unsigned long id);
   Result fetchAllRemotes();
@@ -60,4 +62,5 @@ class Controller : public Subject
   NetworkClientAbstract* m_networkClient;
   SerializerAbstract* m_serializer;
   TransmitterAbstract* m_transmitter;
+  SystemManagerAbstract* m_systemManager;
 };

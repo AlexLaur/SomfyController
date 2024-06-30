@@ -41,11 +41,13 @@
 #include <networkClientAbs.h>
 
 Controller::Controller(DatabaseAbstract* database, NetworkClientAbstract* networkClient,
-    SerializerAbstract* serializer, TransmitterAbstract* transmitter)
+    SerializerAbstract* serializer, TransmitterAbstract* transmitter,
+    SystemManagerAbstract* systemManager)
     : m_database(database)
     , m_networkClient(networkClient)
     , m_serializer(serializer)
     , m_transmitter(transmitter)
+    , m_systemManager(systemManager)
 {
 }
 
@@ -55,10 +57,28 @@ Result Controller::fetchSystemInfos()
   Result result;
 
   SystemInfos infos = this->m_database->getSystemInfos();
+  String macAddress = this->m_networkClient->getMacAddress();
+
+  SystemInfosExtended infosExtended;
+  infosExtended.macAddress = macAddress;
+  strcpy(infosExtended.version, infos.version);
 
   result.isSuccess = true;
-  String serialized = this->m_serializer->serializeSystemInfos(infos);
+  String serialized = this->m_serializer->serializeSystemInfos(infosExtended);
   result.data = serialized;
+
+  return result;
+}
+
+Result Controller::askSystemRestart()
+{
+  LOG_DEBUG("Asking to restart system...");
+
+  String serialized = this->m_serializer->serializeMessage("Restart requested.");
+
+  Result result = { serialized, String(), true };
+
+  this->m_systemManager->requestRestart();
 
   return result;
 }
@@ -163,7 +183,8 @@ Result Controller::deleteRemote(const unsigned long id)
   }
 
   Remote remote = this->m_database->getRemote(id);
-  if (remote.id == 0){
+  if (remote.id == 0)
+  {
     LOG_ERROR("The given remote doesn't exist in the database.");
     result.error = "The given remote doesn't exist in the database.";
     return result;

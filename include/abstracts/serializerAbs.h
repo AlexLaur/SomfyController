@@ -36,10 +36,12 @@
 class SerializerAbstract
 {
   public:
+  virtual String serializeMessage(const char* message) = 0;
   virtual String serializeRemote(const Remote& remote) = 0;
   virtual String serializeRemotes(const Remote remotes[], int size) = 0;
   virtual String serializeNetworkConfig(const NetworkConfiguration& networkConfig) = 0;
   virtual String serializeNetworks(const Network networks[], int size) = 0;
   virtual String serializeSystemInfos(const SystemInfos& infos) = 0;
+  virtual String serializeSystemInfos(const SystemInfosExtended& infos) = 0;
   virtual String serializeMQTTConfig(const MQTTConfiguration& mqttConfig) = 0;
 };

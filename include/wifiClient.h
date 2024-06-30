@@ -36,6 +36,7 @@ class NetworkWifiClient : public NetworkClientAbstract
   bool connect(const NetworkConfiguration& conf);
   bool connect(const char* ssid, const char* password);
   String getIP();
+  String getMacAddress();
   bool isConnected();
   void getNetworks(Network networks[]);
 };

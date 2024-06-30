@@ -27,6 +27,8 @@
  */
 #pragma once
 
+#include <Arduino.h>
+
 #include <networks.h>
 #include <remote.h>
 #include <mqttConfig.h>
@@ -36,6 +38,8 @@
 class EEPROMDatabase : public DatabaseAbstract
 {
   public:
+  EEPROMDatabase();
+  EEPROMDatabase(unsigned long remoteBaseAddress);
   void init();
   void fixIntegrity();
 
@@ -63,6 +67,7 @@ class EEPROMDatabase : public DatabaseAbstract
   int m_networkConfigAddressStart = sizeof(SystemInfos);
   int m_mqttConfigAddressStart = sizeof(SystemInfos) + sizeof(NetworkConfiguration);
   int m_remotesAddressStart = sizeof(SystemInfos) + sizeof(NetworkConfiguration) + sizeof(MQTTConfiguration);
+  unsigned long m_remoteBaseAddress = REMOTE_BASE_ADDRESS;
 
   bool migrate();
   bool stringIsAscii(const char* data);

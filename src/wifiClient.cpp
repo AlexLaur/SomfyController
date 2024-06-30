@@ -80,14 +80,21 @@ bool NetworkWifiClient::connect(const char* ssid, const char* password)
     WiFi.disconnect();
     return false;
   }
-};
+}
 
 /**
  * @brief Get the IP Address of this device
  *
  * @return String
  */
-String NetworkWifiClient::getIP() { return WiFi.localIP().toString(); };
+String NetworkWifiClient::getIP() { return WiFi.localIP().toString(); }
+
+/**
+ * @brief Get the address MAC of this device
+ *
+ * @return String
+ */
+String NetworkWifiClient::getMacAddress() { return WiFi.macAddress(); }
 
 /**
  * @brief Is Connected to a network ?
@@ -95,7 +102,7 @@ String NetworkWifiClient::getIP() { return WiFi.localIP().toString(); };
  * @return true, if connected
  * @return false, otherwise
  */
-bool NetworkWifiClient::isConnected() { return (WiFi.status() == WL_CONNECTED); };
+bool NetworkWifiClient::isConnected() { return (WiFi.status() == WL_CONNECTED); }
 
 /**
  * @brief Return the list of Network found
@@ -128,4 +135,4 @@ void NetworkWifiClient::getNetworks(Network networks[])
       networks[i].RSSI = -255;
     }
   }
-};
+}

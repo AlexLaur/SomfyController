@@ -1,7 +1,7 @@
 /**
- * @file jsonSerializer.h
+ * @file utils.cpp
  * @author Laurette Alexandre
- * @brief Header for JSON serialization.
+ * @brief Implementation of somes utils fonction for the application.
  * @version 2.1.0
  * @date 2024-06-06
  *
@@ -25,28 +25,19 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-#pragma once
-
 #include <Arduino.h>
-#include <ArduinoJson.h>
+#include <utils.h>
 
-#include <remote.h>
-#include <networks.h>
-#include <systemInfos.h>
-#include <serializerAbs.h>
-
-class JSONSerializer : public SerializerAbstract
+unsigned long macToLong(const char* macAddress)
 {
-  public:
-  String serializeMessage(const char* message);
-  String serializeRemote(const Remote& remote);
-  String serializeRemotes(const Remote remotes[], int size);
-  String serializeNetworkConfig(const NetworkConfiguration& networkConfig);
-  String serializeNetworks(const Network networks[], int size);
-  String serializeSystemInfos(const SystemInfos& infos);
-  String serializeSystemInfos(const SystemInfosExtended& infos);
-  String serializeMQTTConfig(const MQTTConfiguration& mqttConfig);
+  unsigned long result = 0;
+  char* endPtr;
 
-  private:
-  void serializeRemote(JsonObject object, const Remote& remote);
-};
+  for (int i = 0; i < 6; ++i)
+  {
+    result <<= 8; // Offset 8 bits on the left
+    result |= strtol(macAddress + 3 * i, &endPtr, 16); // HEX convert
+  }
+
+  return result;
+}

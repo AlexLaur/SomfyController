@@ -83,8 +83,16 @@ void WebServer::notified(const char* action, const char* data)
 void WebServer::handleSystemRestart(AsyncWebServerRequest* request)
 {
   LOG_INFO("Endpoint to restart module reached.");
-    // ESP.restart();
-  request->send(200, "application/json", "{\"message\":\"Restarting...\"}");
+
+  WebServer* instance = WebServer::getInstance();
+  Result result = instance->m_controller->askSystemRestart();
+
+  if (!result.isSuccess)
+  {
+    request->send(400, "application/json", "{\"message\":\"" + result.error + "\"}");
+    return;
+  }
+  request->send(200, "application/json", result.data);
 }
 
 void WebServer::handleFetchSystemInfos(AsyncWebServerRequest* request)
@@ -106,7 +114,7 @@ void WebServer::handleFetchWifiNetworks(AsyncWebServerRequest* request)
 {
   LOG_INFO("Endpoint to fetch Wifi Networks reached.");
   // TODO need to be moved inside the controller.
-//    String serialized = serializer.serializeNetworks(networks, MAX_NETWORK_SCAN);
+  //    String serialized = serializer.serializeNetworks(networks, MAX_NETWORK_SCAN);
   WebServer* instance = WebServer::getInstance();
   request->send(200, "application/json", "[]");
 }
@@ -240,7 +248,7 @@ void WebServer::handleFetchRemote(AsyncWebServerRequest* request)
 {
   LOG_INFO("Endpoint to fetch a remote reached.");
 
-  unsigned long remoteId = request->pathArg(0).toInt();
+  unsigned long remoteId = strtoul(request->pathArg(0).c_str(), nullptr, 10);
 
   WebServer* instance = WebServer::getInstance();
   Result result = instance->m_controller->fetchRemote(remoteId);
@@ -279,7 +287,7 @@ void WebServer::handleUpdateRemote(AsyncWebServerRequest* request)
 {
   LOG_INFO("Endpoint to update a remote reached.");
 
-  unsigned long remoteId = request->pathArg(0).toInt();
+  unsigned long remoteId = strtoul(request->pathArg(0).c_str(), nullptr, 10);
 
   String name;
   unsigned int rollingCode = 0;
@@ -311,7 +319,7 @@ void WebServer::handleDeleteRemote(AsyncWebServerRequest* request)
 {
   LOG_INFO("Endpoint to delete a remote reached.");
 
-  unsigned long remoteId = request->pathArg(0).toInt();
+  unsigned long remoteId = strtoul(request->pathArg(0).c_str(), nullptr, 10);
 
   WebServer* instance = WebServer::getInstance();
   Result result = instance->m_controller->deleteRemote(remoteId);
@@ -328,7 +336,7 @@ void WebServer::handleActionRemote(AsyncWebServerRequest* request)
 {
   LOG_INFO("Endpoint to operate an action on a remote reached.");
 
-  unsigned long remoteId = request->pathArg(0).toInt();
+  unsigned long remoteId = strtoul(request->pathArg(0).c_str(), nullptr, 10);
 
   String action;
   if (request->hasParam("action", true))
