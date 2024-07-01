@@ -55,8 +55,8 @@ RTSTransmitter transmitter;
 Network networks[MAX_NETWORK_SCAN];
 Controller controller(&database, &wifiClient, &serializer, &transmitter, &systemManager);
 
-MQTTClient mqttClient(&controller);
-WebServer server(SERVER_PORT, &controller);
+MQTTClient mqttClient(&controller, &serializer);
+WebServer server(SERVER_PORT, &controller, &serializer);
 
 // ============================================================================
 // SETUP

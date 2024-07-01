@@ -32,11 +32,12 @@
 #include <config.h>
 #include <observer.h>
 #include <controller.h>
+#include <serializerAbs.h>
 
 class WebServer : public Observer
 {
   public:
-  WebServer(const unsigned short port, Controller* controller);
+  WebServer(const unsigned short port, Controller* controller, SerializerAbstract* serializer);
   ~WebServer();
   static WebServer* getInstance();
 
@@ -49,6 +50,7 @@ class WebServer : public Observer
   static WebServer* m_instance;
   AsyncWebServer* m_server = nullptr;
   Controller* m_controller = nullptr;
+  SerializerAbstract* m_serializer;
 
   // API REST
   static void handleSystemRestart(AsyncWebServerRequest* request);

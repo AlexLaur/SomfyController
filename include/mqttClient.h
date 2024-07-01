@@ -33,13 +33,14 @@
 #include <observer.h>
 #include <controller.h>
 #include <mqttConfig.h>
+#include <serializerAbs.h>
 
 void callback(char* topic, byte* payload, unsigned int length);
 
 class MQTTClient : public Observer
 {
   public:
-  MQTTClient(Controller* controller);
+  MQTTClient(Controller* controller, SerializerAbstract* serializer);
   static MQTTClient* getInstance();
   bool connect(const MQTTConfiguration& conf);
   void handleMessages();
@@ -50,6 +51,7 @@ class MQTTClient : public Observer
   private:
   static MQTTClient* m_instance;
   Controller* m_controller = nullptr;
+  SerializerAbstract* m_serializer;
 
   static void receive(const char* topic, byte* payload, uint32_t length);
   String getClientIdentifier();

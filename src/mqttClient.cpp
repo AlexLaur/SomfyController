@@ -35,14 +35,15 @@
 #include <controller.h>
 #include <mqttClient.h>
 #include <mqttConfig.h>
+#include <serializerAbs.h>
 
 WiFiClient espClient;
 PubSubClient pubSubClient(espClient);
 
 MQTTClient* MQTTClient::m_instance = nullptr;
 
-MQTTClient::MQTTClient(Controller* controller)
-    : m_controller(controller)
+MQTTClient::MQTTClient(Controller* controller, SerializerAbstract* serializer)
+    : m_controller(controller), m_serializer(serializer)
 {
   this->m_instance = this;
 }

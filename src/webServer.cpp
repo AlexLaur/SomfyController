@@ -33,11 +33,12 @@
 #include <result.h>
 #include <controller.h>
 #include <webServer.h>
+#include <serializerAbs.h>
 
 WebServer* WebServer::m_instance = nullptr;
 
-WebServer::WebServer(const unsigned short port, Controller* controller)
-    : m_controller(controller)
+WebServer::WebServer(const unsigned short port, Controller* controller, SerializerAbstract* serializer)
+    : m_controller(controller), m_serializer(serializer)
 {
   this->m_server = new AsyncWebServer(port);
   this->m_instance = this;
