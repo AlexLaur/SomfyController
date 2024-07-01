@@ -40,6 +40,7 @@ class MQTTClient : public Observer
 {
   public:
   MQTTClient(Controller* controller);
+  static MQTTClient* getInstance();
   bool connect(const MQTTConfiguration& conf);
   void handleMessages();
   bool isConnected();
@@ -47,7 +48,9 @@ class MQTTClient : public Observer
   void notified(const char* action, const char* data); // from observer
 
   private:
+  static MQTTClient* m_instance;
   Controller* m_controller = nullptr;
+
   static void receive(const char* topic, byte* payload, uint32_t length);
   String getClientIdentifier();
 };

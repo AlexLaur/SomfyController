@@ -39,7 +39,15 @@
 WiFiClient espClient;
 PubSubClient pubSubClient(espClient);
 
-MQTTClient::MQTTClient(Controller* controller): m_controller(controller) { }
+MQTTClient* MQTTClient::m_instance = nullptr;
+
+MQTTClient::MQTTClient(Controller* controller)
+    : m_controller(controller)
+{
+  this->m_instance = this;
+}
+
+MQTTClient* MQTTClient::getInstance() { return MQTTClient::m_instance; }
 
 bool MQTTClient::connect(const MQTTConfiguration& conf)
 {
@@ -51,8 +59,10 @@ bool MQTTClient::connect(const MQTTConfiguration& conf)
     LOG_INFO("MQTT client started.");
 
     pubSubClient.setCallback(MQTTClient::receive);
-    pubSubClient.publish("esprtsomfy/system/infos", this->m_controller->fetchSystemInfos().data.c_str());
-    pubSubClient.publish("esprtsomfy/remotes/list", this->m_controller->fetchAllRemotes().data.c_str());
+    pubSubClient.publish(
+        "esprtsomfy/system/infos", this->m_controller->fetchSystemInfos().data.c_str());
+    pubSubClient.publish(
+        "esprtsomfy/remotes/list", this->m_controller->fetchAllRemotes().data.c_str());
     pubSubClient.subscribe("inTopic");
   }
   else
@@ -74,30 +84,36 @@ void MQTTClient::handleMessages()
 
 bool MQTTClient::isConnected() { return pubSubClient.connected(); }
 
-void MQTTClient::notified(const char* action, const char* data) {
-    if (!this->isConnected()){
-        LOG_ERROR("MQTT Client is not connected. Nothing can be published.");
-    }
-    // if (strcmp(action, "remote-up") == 0){
-    //     LOG_INFO("Remote UP command catched.");
-    //     pubSubClient.publish("esprtsomfy/remotes/action/up", data);
-    // }
-    // else if (strcmp(action, "remote-delete") == 0){
-    //     LOG_INFO("Remote Delete command catched.");
-    //     Result result = this->m_controller->fetchAllRemotes();
-    //     pubSubClient.publish("esprtsomfy/remotes/list", result.data.c_str(), true);
-    // }
-    // else if (strcmp(action, "remote-create") == 0){
-    //     LOG_INFO("Remote Create command catched.");
-    //     Result result = this->m_controller->fetchAllRemotes();
-    //     pubSubClient.publish("esprtsomfy/remotes/list", result.data.c_str(), true);
-    // }
+void MQTTClient::notified(const char* action, const char* data)
+{
+  if (!this->isConnected())
+  {
+    LOG_ERROR("MQTT Client is not connected. Nothing can be published.");
+    return;
+  }
+  // if (strcmp(action, "remote-up") == 0){
+  //     LOG_INFO("Remote UP command catched.");
+  //     pubSubClient.publish("esprtsomfy/remotes/action/up", data);
+  // }
+  // else if (strcmp(action, "remote-delete") == 0){
+  //     LOG_INFO("Remote Delete command catched.");
+  //     Result result = this->m_controller->fetchAllRemotes();
+  //     pubSubClient.publish("esprtsomfy/remotes/list", result.data.c_str(), true);
+  // }
+  // else if (strcmp(action, "remote-create") == 0){
+  //     LOG_INFO("Remote Create command catched.");
+  //     Result result = this->m_controller->fetchAllRemotes();
+  //     pubSubClient.publish("esprtsomfy/remotes/list", result.data.c_str(), true);
+  // }
 }
 
 // PRIVATE
 void MQTTClient::receive(const char* topic, byte* payload, uint32_t length)
 {
   LOG_INFO("Message arrived on topic: ", topic);
+
+  MQTTClient* instance = MQTTClient::getInstance();
+
   for (unsigned int i = 0; i < length; i++)
   {
     LOG_INFO((char)payload[i]);
