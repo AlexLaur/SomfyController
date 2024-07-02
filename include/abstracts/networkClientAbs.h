@@ -37,5 +37,6 @@ class NetworkClientAbstract
   virtual String getIP() = 0;
   virtual String getMacAddress() = 0;
   virtual bool isConnected() = 0;
+  virtual void scanNetworks() = 0;
   virtual void getNetworks(Network networks[]) = 0;
 };

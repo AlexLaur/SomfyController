@@ -105,11 +105,10 @@ String NetworkWifiClient::getMacAddress() { return WiFi.macAddress(); }
 bool NetworkWifiClient::isConnected() { return (WiFi.status() == WL_CONNECTED); }
 
 /**
- * @brief Return the list of Network found
+ * @brief Scan networks
  *
- * @param networks Array of Networks.
  */
-void NetworkWifiClient::getNetworks(Network networks[])
+void NetworkWifiClient::scanNetworks()
 {
   WiFi.mode(WIFI_STA);
   WiFi.disconnect();
@@ -125,14 +124,27 @@ void NetworkWifiClient::getNetworks(Network networks[])
     for (int i = 0; i < count && i < MAX_NETWORK_SCAN; ++i)
     {
       // Get SSID and RSSI for each network found
-      strcpy(networks[i].SSID, WiFi.SSID(i).c_str());
-      networks[i].RSSI = WiFi.RSSI(i); // Signal strength in dBm
+      strcpy(this->m_networks[i].SSID, WiFi.SSID(i).c_str());
+      this->m_networks[i].RSSI = WiFi.RSSI(i); // Signal strength in dBm
     }
-
     for (int i = count; i < MAX_NETWORK_SCAN; ++i)
     {
-      strcpy(networks[i].SSID, "");
-      networks[i].RSSI = -255;
+      strcpy(this->m_networks[i].SSID, "");
+      this->m_networks[i].RSSI = -255;
     }
+  }
+}
+
+/**
+ * @brief Return the list of Network found
+ *
+ * @param networks Array of Networks.
+ */
+void NetworkWifiClient::getNetworks(Network networks[])
+{
+  for (unsigned short i = 0; i < MAX_NETWORK_SCAN; ++i)
+  {
+    networks[i].RSSI = this->m_networks[i].RSSI;
+    strcpy(networks[i].SSID, this->m_networks[i].SSID);
   }
 }

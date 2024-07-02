@@ -30,6 +30,7 @@
 #include <Arduino.h>
 #include <PubSubClient.h>
 
+#include <remote.h>
 #include <observer.h>
 #include <controller.h>
 #include <mqttConfig.h>
@@ -46,7 +47,7 @@ class MQTTClient : public Observer
   void handleMessages();
   bool isConnected();
 
-  void notified(const char* action, const char* data); // from observer
+  void notified(const char* action, const Remote& remote); // from observer
 
   private:
   static MQTTClient* m_instance;

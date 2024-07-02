@@ -27,6 +27,7 @@
  */
 #pragma once
 
+#include <config.h>
 #include <networks.h>
 #include <networkClientAbs.h>
 
@@ -38,5 +39,9 @@ class NetworkWifiClient : public NetworkClientAbstract
   String getIP();
   String getMacAddress();
   bool isConnected();
+  void scanNetworks();
   void getNetworks(Network networks[]);
+
+  private:
+  Network m_networks[MAX_NETWORK_SCAN];
 };

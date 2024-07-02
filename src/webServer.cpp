@@ -31,14 +31,17 @@
 #include <ESPAsyncWebServer.h>
 
 #include <result.h>
+#include <remote.h>
 #include <controller.h>
 #include <webServer.h>
 #include <serializerAbs.h>
 
 WebServer* WebServer::m_instance = nullptr;
 
-WebServer::WebServer(const unsigned short port, Controller* controller, SerializerAbstract* serializer)
-    : m_controller(controller), m_serializer(serializer)
+WebServer::WebServer(
+    const unsigned short port, Controller* controller, SerializerAbstract* serializer)
+    : m_controller(controller)
+    , m_serializer(serializer)
 {
   this->m_server = new AsyncWebServer(port);
   this->m_instance = this;
@@ -69,11 +72,16 @@ void WebServer::setup()
   this->m_server->on("^\\/api/v1/remotes\\/([0-9]+)$", HTTP_DELETE, WebServer::handleDeleteRemote);
   this->m_server->on(
       "^\\/api/v1/remotes\\/([0-9]+)\\/action$", HTTP_POST, WebServer::handleActionRemote);
+  LOG_INFO("Webserver setuped.");
 }
 
-void WebServer::begin() { this->m_server->begin(); }
+void WebServer::begin()
+{
+  this->m_server->begin();
+  LOG_INFO("WebServer started.");
+}
 
-void WebServer::notified(const char* action, const char* data)
+void WebServer::notified(const char* action, const Remote& remote)
 {
   // Not implemented yet. Not necessary.
 }
@@ -86,14 +94,14 @@ void WebServer::handleSystemRestart(AsyncWebServerRequest* request)
   LOG_INFO("Endpoint to restart module reached.");
 
   WebServer* instance = WebServer::getInstance();
-  Result result = instance->m_controller->askSystemRestart();
+  Result<String> result = instance->m_controller->askSystemRestart();
 
   if (!result.isSuccess)
   {
-    request->send(400, "application/json", "{\"message\":\"" + result.error + "\"}");
+    request->send(400, "application/json", "{\"message\":\"" + result.errorMsg + "\"}");
     return;
   }
-  request->send(200, "application/json", result.data);
+  request->send(200, "application/json", "{\"message\":\"" + result.data + "\"}");
 }
 
 void WebServer::handleFetchSystemInfos(AsyncWebServerRequest* request)
@@ -101,23 +109,31 @@ void WebServer::handleFetchSystemInfos(AsyncWebServerRequest* request)
   LOG_INFO("Endpoint to fetch system informations reached.");
 
   WebServer* instance = WebServer::getInstance();
-  Result result = instance->m_controller->fetchSystemInfos();
+  Result<SystemInfosExtended> result = instance->m_controller->fetchSystemInfos();
 
   if (!result.isSuccess)
   {
-    request->send(400, "application/json", "{\"message\":\"" + result.error + "\"}");
+    request->send(400, "application/json", "{\"message\":\"" + result.errorMsg + "\"}");
     return;
   }
-  request->send(200, "application/json", result.data);
+  String serialized = instance->m_serializer->serializeSystemInfos(result.data);
+  request->send(200, "application/json", serialized);
 }
 
 void WebServer::handleFetchWifiNetworks(AsyncWebServerRequest* request)
 {
   LOG_INFO("Endpoint to fetch Wifi Networks reached.");
-  // TODO need to be moved inside the controller.
-  //    String serialized = serializer.serializeNetworks(networks, MAX_NETWORK_SCAN);
+
   WebServer* instance = WebServer::getInstance();
-  request->send(200, "application/json", "[]");
+  Result<Network[MAX_NETWORK_SCAN]> result = instance->m_controller->fetchScannedNetworks();
+
+  if (!result.isSuccess)
+  {
+    request->send(400, "application/json", "{\"message\":\"" + result.errorMsg + "\"}");
+    return;
+  }
+  String serialized = instance->m_serializer->serializeNetworks(result.data, MAX_NETWORK_SCAN);
+  request->send(200, "application/json", serialized);
 }
 
 void WebServer::handleFetchWifiConfiguration(AsyncWebServerRequest* request)
@@ -125,14 +141,15 @@ void WebServer::handleFetchWifiConfiguration(AsyncWebServerRequest* request)
   LOG_INFO("Endpoint to fetch Network Configuration reached.");
 
   WebServer* instance = WebServer::getInstance();
-  Result result = instance->m_controller->fetchNetworkConfiguration();
+  Result<NetworkConfiguration> result = instance->m_controller->fetchNetworkConfiguration();
 
   if (!result.isSuccess)
   {
-    request->send(400, "application/json", "{\"message\":\"" + result.error + "\"}");
+    request->send(400, "application/json", "{\"message\":\"" + result.errorMsg + "\"}");
     return;
   }
-  request->send(200, "application/json", result.data);
+  String serialized = instance->m_serializer->serializeNetworkConfig(result.data);
+  request->send(200, "application/json", serialized);
 }
 
 void WebServer::handleUpdateWifiConfiguration(AsyncWebServerRequest* request)
@@ -153,15 +170,16 @@ void WebServer::handleUpdateWifiConfiguration(AsyncWebServerRequest* request)
   }
 
   WebServer* instance = WebServer::getInstance();
-  Result result
+  Result<NetworkConfiguration> result
       = instance->m_controller->updateNetworkConfiguration(ssid.c_str(), password.c_str());
 
   if (!result.isSuccess)
   {
-    request->send(400, "application/json", "{\"message\":\"" + result.error + "\"}");
+    request->send(400, "application/json", "{\"message\":\"" + result.errorMsg + "\"}");
     return;
   }
-  request->send(200, "application/json", result.data);
+  String serialized = instance->m_serializer->serializeNetworkConfig(result.data);
+  request->send(200, "application/json", serialized);
 }
 
 void WebServer::handleFetchMQTTConfiguration(AsyncWebServerRequest* request)
@@ -169,14 +187,15 @@ void WebServer::handleFetchMQTTConfiguration(AsyncWebServerRequest* request)
   LOG_INFO("Endpoint to fetch MQTT Configuration reached.");
 
   WebServer* instance = WebServer::getInstance();
-  Result result = instance->m_controller->fetchMQTTConfiguration();
+  Result<MQTTConfiguration> result = instance->m_controller->fetchMQTTConfiguration();
 
   if (!result.isSuccess)
   {
-    request->send(400, "application/json", "{\"message\":\"" + result.error + "\"}");
+    request->send(400, "application/json", "{\"message\":\"" + result.errorMsg + "\"}");
     return;
   }
-  request->send(200, "application/json", result.data);
+  String serialized = instance->m_serializer->serializeMQTTConfig(result.data);
+  request->send(200, "application/json", serialized);
 }
 
 void WebServer::handleUpdateMQTTConfiguration(AsyncWebServerRequest* request)
@@ -219,15 +238,16 @@ void WebServer::handleUpdateMQTTConfiguration(AsyncWebServerRequest* request)
   }
 
   WebServer* instance = WebServer::getInstance();
-  Result result = instance->m_controller->updateMQTTConfiguration(
+  Result<MQTTConfiguration> result = instance->m_controller->updateMQTTConfiguration(
       enabled, broker.c_str(), port, username.c_str(), password.c_str());
 
   if (!result.isSuccess)
   {
-    request->send(400, "application/json", "{\"message\":\"" + result.error + "\"}");
+    request->send(400, "application/json", "{\"message\":\"" + result.errorMsg + "\"}");
     return;
   }
-  request->send(200, "application/json", result.data);
+  String serialized = instance->m_serializer->serializeMQTTConfig(result.data);
+  request->send(200, "application/json", serialized);
 }
 
 void WebServer::handleFetchAllRemotes(AsyncWebServerRequest* request)
@@ -235,14 +255,15 @@ void WebServer::handleFetchAllRemotes(AsyncWebServerRequest* request)
   LOG_INFO("Endpoint to fetch all remotes reached.");
 
   WebServer* instance = WebServer::getInstance();
-  Result result = instance->m_controller->fetchAllRemotes();
+  Result<Remote[MAX_REMOTES]> result = instance->m_controller->fetchAllRemotes();
 
   if (!result.isSuccess)
   {
-    request->send(400, "application/json", "{\"message\":\"" + result.error + "\"}");
+    request->send(400, "application/json", "{\"message\":\"" + result.errorMsg + "\"}");
     return;
   }
-  request->send(200, "application/json", result.data);
+  String serialized = instance->m_serializer->serializeRemotes(result.data, MAX_REMOTES);
+  request->send(200, "application/json", serialized);
 }
 
 void WebServer::handleFetchRemote(AsyncWebServerRequest* request)
@@ -252,14 +273,15 @@ void WebServer::handleFetchRemote(AsyncWebServerRequest* request)
   unsigned long remoteId = strtoul(request->pathArg(0).c_str(), nullptr, 10);
 
   WebServer* instance = WebServer::getInstance();
-  Result result = instance->m_controller->fetchRemote(remoteId);
+  Result<Remote> result = instance->m_controller->fetchRemote(remoteId);
 
   if (!result.isSuccess)
   {
-    request->send(400, "application/json", "{\"message\":\"" + result.error + "\"}");
+    request->send(400, "application/json", "{\"message\":\"" + result.errorMsg + "\"}");
     return;
   }
-  request->send(200, "application/json", result.data);
+  String serialized = instance->m_serializer->serializeRemote(result.data);
+  request->send(200, "application/json", serialized);
 }
 
 void WebServer::handleCreateRemote(AsyncWebServerRequest* request)
@@ -274,14 +296,15 @@ void WebServer::handleCreateRemote(AsyncWebServerRequest* request)
   }
 
   WebServer* instance = WebServer::getInstance();
-  Result result = instance->m_controller->createRemote(name.c_str());
+  Result<Remote> result = instance->m_controller->createRemote(name.c_str());
 
   if (!result.isSuccess)
   {
-    request->send(400, "application/json", "{\"message\":\"" + result.error + "\"}");
+    request->send(400, "application/json", "{\"message\":\"" + result.errorMsg + "\"}");
     return;
   }
-  request->send(201, "application/json", result.data);
+  String serialized = instance->m_serializer->serializeRemote(result.data);
+  request->send(200, "application/json", serialized);
 }
 
 void WebServer::handleUpdateRemote(AsyncWebServerRequest* request)
@@ -306,14 +329,15 @@ void WebServer::handleUpdateRemote(AsyncWebServerRequest* request)
   }
 
   WebServer* instance = WebServer::getInstance();
-  Result result = instance->m_controller->updateRemote(remoteId, name.c_str(), rollingCode);
+  Result<Remote> result = instance->m_controller->updateRemote(remoteId, name.c_str(), rollingCode);
 
   if (!result.isSuccess)
   {
-    request->send(400, "application/json", "{\"message\":\"" + result.error + "\"}");
+    request->send(400, "application/json", "{\"message\":\"" + result.errorMsg + "\"}");
     return;
   }
-  request->send(200, "application/json", result.data);
+  String serialized = instance->m_serializer->serializeRemote(result.data);
+  request->send(200, "application/json", serialized);
 }
 
 void WebServer::handleDeleteRemote(AsyncWebServerRequest* request)
@@ -323,14 +347,15 @@ void WebServer::handleDeleteRemote(AsyncWebServerRequest* request)
   unsigned long remoteId = strtoul(request->pathArg(0).c_str(), nullptr, 10);
 
   WebServer* instance = WebServer::getInstance();
-  Result result = instance->m_controller->deleteRemote(remoteId);
+  Result<Remote> result = instance->m_controller->deleteRemote(remoteId);
 
   if (!result.isSuccess)
   {
-    request->send(400, "application/json", "{\"message\":\"" + result.error + "\"}");
+    request->send(400, "application/json", "{\"message\":\"" + result.errorMsg + "\"}");
     return;
   }
-  request->send(200, "application/json", "{\"message\":\"The remote has been deleted.\"}");
+  String serialized = instance->m_serializer->serializeRemote(result.data);
+  request->send(200, "application/json", serialized);
 }
 
 void WebServer::handleActionRemote(AsyncWebServerRequest* request)
@@ -347,11 +372,11 @@ void WebServer::handleActionRemote(AsyncWebServerRequest* request)
   }
 
   WebServer* instance = WebServer::getInstance();
-  Result result = instance->m_controller->operateRemote(remoteId, action.c_str());
+  Result<String> result = instance->m_controller->operateRemote(remoteId, action.c_str());
 
   if (!result.isSuccess)
   {
-    request->send(400, "application/json", "{\"message\":\"" + result.error + "\"}");
+    request->send(400, "application/json", "{\"message\":\"" + result.errorMsg + "\"}");
     return;
   }
   request->send(200, "application/json", "{\"message\":\"" + result.data + "\"}");

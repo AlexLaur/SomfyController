@@ -45,16 +45,16 @@
 #include <eepromDatabase.h>
 #include <jsonSerializer.h>
 
-NetworkWifiClient wifiClient;
 WifiAccessPoint wifiAP;
-JSONSerializer serializer;
-EEPROMDatabase database(macToLong(wifiClient.getMacAddress().c_str()));
-SystemManager systemManager;
 RTSTransmitter transmitter;
+SystemManager systemManager;
+NetworkWifiClient wifiClient;
+EEPROMDatabase database(macToLong(wifiClient.getMacAddress().c_str()));
 
 Network networks[MAX_NETWORK_SCAN];
-Controller controller(&database, &wifiClient, &serializer, &transmitter, &systemManager);
+Controller controller(&database, &wifiClient, &transmitter, &systemManager);
 
+JSONSerializer serializer;
 MQTTClient mqttClient(&controller, &serializer);
 WebServer server(SERVER_PORT, &controller, &serializer);
 
@@ -91,8 +91,9 @@ void setup()
   }
 
   // WIFI Setup
-  LOG_INFO("Fetching all wifi networks...");
-  wifiClient.getNetworks(networks);
+  LOG_INFO("Scanning all wifi networks...");
+  wifiClient.scanNetworks();
+
   LOG_INFO("Trying WiFi connection...");
   NetworkConfiguration networkConfig = database.getNetworkConfiguration();
   if (strlen(networkConfig.ssid) == 0)
@@ -140,6 +141,7 @@ void setup()
   }
 
   // SERVER setup
+  LOG_INFO("Setuping WebServer...");
   server.setup();
   server.begin();
   controller.attach(&server);

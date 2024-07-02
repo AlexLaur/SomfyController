@@ -32,6 +32,7 @@
 
 #include <config.h>
 #include <result.h>
+#include <remote.h>
 #include <controller.h>
 #include <mqttClient.h>
 #include <mqttConfig.h>
@@ -43,7 +44,8 @@ PubSubClient pubSubClient(espClient);
 MQTTClient* MQTTClient::m_instance = nullptr;
 
 MQTTClient::MQTTClient(Controller* controller, SerializerAbstract* serializer)
-    : m_controller(controller), m_serializer(serializer)
+    : m_controller(controller)
+    , m_serializer(serializer)
 {
   this->m_instance = this;
 }
@@ -60,10 +62,27 @@ bool MQTTClient::connect(const MQTTConfiguration& conf)
     LOG_INFO("MQTT client started.");
 
     pubSubClient.setCallback(MQTTClient::receive);
-    pubSubClient.publish(
-        "esprtsomfy/system/infos", this->m_controller->fetchSystemInfos().data.c_str());
-    pubSubClient.publish(
-        "esprtsomfy/remotes/list", this->m_controller->fetchAllRemotes().data.c_str());
+
+    Result<SystemInfosExtended> resultInfos = this->m_controller->fetchSystemInfos();
+    pubSubClient.publish("esprtsomfy/system/infos/version", resultInfos.data.version);
+    pubSubClient.publish("esprtsomfy/system/infos/mac", resultInfos.data.macAddress.c_str());
+    pubSubClient.publish("esprtsomfy/system/infos/ip", resultInfos.data.ipAddress.c_str());
+
+    Result<Remote[MAX_REMOTES]> resultRemotes = this->m_controller->fetchAllRemotes();
+    char topic[50];
+    for (unsigned short i = 0; i < MAX_REMOTES; ++i)
+    {
+      if (resultRemotes.data[i].id == 0)
+      {
+        // Skip empty remotes
+        continue;
+      }
+      sprintf(topic, "esprtsomfy/remotes/%lu/rolling_code", resultRemotes.data[i].id);
+      pubSubClient.publish(topic, String(resultRemotes.data[i].rollingCode).c_str());
+      sprintf(topic, "esprtsomfy/remotes/%lu/name", resultRemotes.data[i].id);
+      pubSubClient.publish(topic, resultRemotes.data[i].name);
+    }
+
     pubSubClient.subscribe("inTopic");
   }
   else
@@ -85,17 +104,32 @@ void MQTTClient::handleMessages()
 
 bool MQTTClient::isConnected() { return pubSubClient.connected(); }
 
-void MQTTClient::notified(const char* action, const char* data)
+void MQTTClient::notified(const char* action, const Remote& remote)
 {
   if (!this->isConnected())
   {
     LOG_ERROR("MQTT Client is not connected. Nothing can be published.");
     return;
   }
-  // if (strcmp(action, "remote-up") == 0){
-  //     LOG_INFO("Remote UP command catched.");
-  //     pubSubClient.publish("esprtsomfy/remotes/action/up", data);
-  // }
+  char topic[50];
+  if (strcmp(action, "remote-update") == 0)
+  {
+    LOG_INFO("Remote update catched.");
+    sprintf(topic, "esprtsomfy/remotes/%lu/rolling_code", remote.id);
+    pubSubClient.publish(topic, String(remote.rollingCode).c_str());
+    sprintf(topic, "esprtsomfy/remotes/%lu/name", remote.id);
+    pubSubClient.publish(topic, remote.name);
+    return;
+  }
+
+  if (strcmp(action, "remote-up") == 0 || strcmp(action, "remote-stop") == 0
+      || strcmp(action, "remote-down") == 0 || strcmp(action, "remote-pair") == 0
+      || strcmp(action, "remote-reset") == 0)
+  {
+    LOG_INFO("Remote command catched.");
+    sprintf(topic, "esprtsomfy/remotes/%lu/last_command", remote.id);
+    pubSubClient.publish(topic, "foo"); // TODO
+  }
   // else if (strcmp(action, "remote-delete") == 0){
   //     LOG_INFO("Remote Delete command catched.");
   //     Result result = this->m_controller->fetchAllRemotes();

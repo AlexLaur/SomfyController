@@ -27,10 +27,14 @@
  */
 #pragma once
 
+#include <Arduino.h>
+
+#include <remote.h>
+
 class Observer
 {
   public:
-  virtual void notified(const char* action, const char* data) = 0;
+  virtual void notified(const char* action, const Remote& remote) = 0;
 };
 
 class Subject
@@ -38,7 +42,7 @@ class Subject
   public:
   void attach(Observer* observer);
   void deattach(Observer* observer);
-  void notify(const char* action, const char* data);
+  void notify(const char* action, const Remote& remote);
 
   private:
   Observer* m_observers[2] = { nullptr, nullptr }; // Allow only 2 observers (MQTT and WebServer)

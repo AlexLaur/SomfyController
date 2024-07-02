@@ -38,29 +38,28 @@
 class Controller : public Subject
 {
   public:
-  Controller(DatabaseAbstract* database, NetworkClientAbstract* networkClient, SerializerAbstract* serializer,
-      TransmitterAbstract* transmitter, SystemManagerAbstract* systemManager);
+  Controller(DatabaseAbstract* database, NetworkClientAbstract* networkClient, TransmitterAbstract* transmitter, SystemManagerAbstract* systemManager);
 
-  Result fetchSystemInfos();
-  Result askSystemRestart();
+  Result<SystemInfosExtended> fetchSystemInfos();
+  Result<String> askSystemRestart();
 
-  Result fetchRemote(const unsigned long id);
-  Result fetchAllRemotes();
-  Result createRemote(const char* name);
-  Result deleteRemote(const unsigned long id);
-  Result updateRemote(const unsigned long id, const char* name, const unsigned int rollingCode);
-  Result operateRemote(const unsigned long id, const char* action);
+  Result<Remote> fetchRemote(const unsigned long id);
+  Result<Remote[MAX_REMOTES]> fetchAllRemotes();
+  Result<Remote> createRemote(const char* name);
+  Result<Remote> deleteRemote(const unsigned long id);
+  Result<Remote> updateRemote(const unsigned long id, const char* name, const unsigned int rollingCode);
+  Result<String> operateRemote(const unsigned long id, const char* action);
 
-  Result fetchNetworkConfiguration();
-  Result updateNetworkConfiguration(const char* ssid, const char* password);
+  Result<Network[MAX_NETWORK_SCAN]> fetchScannedNetworks();
+  Result<NetworkConfiguration> fetchNetworkConfiguration();
+  Result<NetworkConfiguration> updateNetworkConfiguration(const char* ssid, const char* password);
 
-  Result fetchMQTTConfiguration();
-  Result updateMQTTConfiguration(const bool& enabled, const char* broker, const unsigned short& port, const char* username, const char* password);
+  Result<MQTTConfiguration> fetchMQTTConfiguration();
+  Result<MQTTConfiguration> updateMQTTConfiguration(const bool& enabled, const char* broker, const unsigned short& port, const char* username, const char* password);
 
   private:
   DatabaseAbstract* m_database;
   NetworkClientAbstract* m_networkClient;
-  SerializerAbstract* m_serializer;
   TransmitterAbstract* m_transmitter;
   SystemManagerAbstract* m_systemManager;
 };

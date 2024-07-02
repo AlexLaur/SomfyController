@@ -134,6 +134,7 @@ String JSONSerializer::serializeSystemInfos(const SystemInfosExtended& infos)
 
   object["version"] = infos.version;
   object["mac"] = infos.macAddress;
+  object["ip"] = infos.ipAddress;
 
   String output;
   serializeJson(doc, output);

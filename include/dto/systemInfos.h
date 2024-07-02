@@ -47,4 +47,5 @@ struct SystemInfosExtended
 {
   char version[8]; // Allow x.xx.xx
   String macAddress;
+  String ipAddress;
 };

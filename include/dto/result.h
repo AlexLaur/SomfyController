@@ -29,9 +29,10 @@
 
 #include <Arduino.h>
 
+template <typename T>
 struct Result
 {
-  String data = "";
-  String error = "";
+  T data;
+  String errorMsg = "";
   bool isSuccess = false;
 };

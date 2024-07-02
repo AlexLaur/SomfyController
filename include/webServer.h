@@ -30,6 +30,7 @@
 #include <ESPAsyncWebServer.h>
 
 #include <config.h>
+#include <remote.h>
 #include <observer.h>
 #include <controller.h>
 #include <serializerAbs.h>
@@ -44,7 +45,7 @@ class WebServer : public Observer
   void setup();
   void begin();
 
-  void notified(const char* action, const char* data); // from observer
+  void notified(const char* action, const Remote& remote); // from observer
 
   private:
   static WebServer* m_instance;

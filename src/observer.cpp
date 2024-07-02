@@ -60,7 +60,7 @@ void Subject::deattach(Observer* observer)
   }
 }
 
-void Subject::notify(const char* action, const char* data)
+void Subject::notify(const char* action, const Remote& remote)
 {
   LOG_DEBUG("A message will be delivered to all observers.");
   for (unsigned short i = 0; i < sizeof(this->m_observers) / sizeof(this->m_observers[0]); ++i)
@@ -69,6 +69,6 @@ void Subject::notify(const char* action, const char* data)
     {
       continue;
     }
-    this->m_observers[i]->notified(action, data);
+    this->m_observers[i]->notified(action, remote);
   }
 }
