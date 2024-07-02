@@ -5,7 +5,6 @@
 #include <mqttConfig.h>
 #include <systemInfos.h>
 #include <databaseAbs.h>
-#include <serializerAbs.h>
 #include <transmitterAbs.h>
 #include <networkClientAbs.h>
 #include <systemManagerAbs.h>
@@ -50,19 +49,6 @@ class FakeDatabase : public DatabaseAbstract
   bool setMQTTConfiguration(const MQTTConfiguration& mqttConfig);
 };
 
-class FakeSerializer : public SerializerAbstract
-{
-  public:
-  String serializeMessage(const char* message);
-  String serializeRemote(const Remote& remote);
-  String serializeRemotes(const Remote remotes[], int size);
-  String serializeNetworkConfig(const NetworkConfiguration& networkConfig);
-  String serializeNetworks(const Network networks[], int size);
-  String serializeSystemInfos(const SystemInfos& infos);
-  String serializeSystemInfos(const SystemInfosExtended& infos);
-  String serializeMQTTConfig(const MQTTConfiguration& mqttConfig);
-};
-
 class FakeTransmitter : public TransmitterAbstract
 {
   public:
@@ -85,6 +71,7 @@ class FakeNetworkClient : public NetworkClientAbstract
   String getIP();
   String getMacAddress();
   bool isConnected();
+  void scanNetworks();
   void getNetworks(Network networks[]);
 };
 

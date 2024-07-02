@@ -103,10 +103,10 @@ void test_METHOD_serializeSystemInfos_WITH_info_SHOULD_return_string(void)
 
 void test_METHOD_serializeSystemInfos_WITH_info_extended_SHOULD_return_string(void)
 {
-  SystemInfosExtended infos = { "1.0.0", "FF:FF:FF:FF:FF:FF" };
+  SystemInfosExtended infos = { "1.0.0", "FF:FF:FF:FF:FF:FF", "255.255.255.255" };
 
   String serialized = serializerTest.serializeSystemInfos(infos);
-  String expected = "{\"version\":\"1.0.0\",\"mac\":\"FF:FF:FF:FF:FF:FF\"}";
+  String expected = "{\"version\":\"1.0.0\",\"mac\":\"FF:FF:FF:FF:FF:FF\",\"ip\":\"255.255.255.255\"}";
 
   TEST_ASSERT_EQUAL_STRING(expected.c_str(), serialized.c_str());
 }

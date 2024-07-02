@@ -58,6 +58,7 @@ Remote FakeDatabase::createRemote(const char* name)
     return remote;
   }
   remote.id = 1;
+  strcpy(remote.name, name);
   return remote;
 }
 
@@ -109,43 +110,6 @@ bool FakeDatabase::setMQTTConfiguration(const MQTTConfiguration& mqttConfig)
   return true;
 }
 
-// Fake Serializer
-String FakeSerializer::serializeMessage(const char* message)
-{
-  return String("Message serialized");
-}
-String FakeSerializer::serializeRemote(const Remote& remote) { return String("Remote serialized"); }
-
-String FakeSerializer::serializeRemotes(const Remote remotes[], int size)
-{
-  return String("Remotes serialized");
-}
-
-String FakeSerializer::serializeNetworkConfig(const NetworkConfiguration& networkConfig)
-{
-  return String("NetworkConfiguration serialized");
-}
-
-String FakeSerializer::serializeNetworks(const Network networks[], int size)
-{
-  return String("Networks serialized");
-}
-
-String FakeSerializer::serializeSystemInfos(const SystemInfos& infos)
-{
-  return String("SystemInfos serialized");
-}
-
-String FakeSerializer::serializeSystemInfos(const SystemInfosExtended& infos)
-{
-  return String("SystemInfosExtended serialized");
-}
-
-String FakeSerializer::serializeMQTTConfig(const MQTTConfiguration& config)
-{
-  return String("MQTTConfiguration serialized");
-}
-
 // Fake Transmitter
 bool FakeTransmitter::sendUPCommandCalled = false;
 bool FakeTransmitter::sendSTOPCommandCalled = false;
@@ -176,22 +140,21 @@ bool FakeTransmitter::sendProgCmd(const unsigned long remoteId, const unsigned i
 // Fake NetworkClient
 bool FakeNetworkClient::connect(const NetworkConfiguration& conf) { return true; };
 bool FakeNetworkClient::connect(const char* ssid, const char* password) { return true; };
-String FakeNetworkClient::getIP() { return String("192.168.1.42"); };
+String FakeNetworkClient::getIP() { return String("255.255.255.255"); };
 String FakeNetworkClient::getMacAddress() { return String("FF:FF:FF:FF:FF:FF"); }
 bool FakeNetworkClient::isConnected() { return true; };
 void FakeNetworkClient::getNetworks(Network networks[]) {};
+void FakeNetworkClient::scanNetworks() {};
 
 // TEST CONTROLLER
 // ############################################################################
 
 FakeDatabase databaseFake;
 FakeNetworkClient networkClientFake;
-FakeSerializer serializerFake;
 FakeTransmitter transmitterFake;
 FakeSystemManager fakeSystemManager;
 
-Controller controllerTest(
-    &databaseFake, &networkClientFake, &serializerFake, &transmitterFake, &fakeSystemManager);
+Controller controllerTest(&databaseFake, &networkClientFake, &transmitterFake, &fakeSystemManager);
 
 void RUN_CONTROLLER_TESTS(void)
 {
@@ -270,194 +233,205 @@ void RUN_CONTROLLER_TESTS(void)
 
 void test_METHOD_fetchSystemInfos_SHOULD_return_systeminfos(void)
 {
-  Result result = controllerTest.fetchSystemInfos();
+  Result<SystemInfosExtended> result = controllerTest.fetchSystemInfos();
 
   TEST_ASSERT_TRUE(result.isSuccess);
-  TEST_ASSERT_EQUAL_STRING("SystemInfosExtended serialized", result.data.c_str());
-  TEST_ASSERT_EQUAL_STRING_LEN("", result.error.c_str(), 0);
+  TEST_ASSERT_EQUAL_STRING("1.0.0", result.data.version);
+  TEST_ASSERT_EQUAL_STRING("FF:FF:FF:FF:FF:FF", result.data.macAddress.c_str());
+  TEST_ASSERT_EQUAL_STRING("255.255.255.255", result.data.ipAddress.c_str());
+  TEST_ASSERT_EQUAL_STRING_LEN("", result.errorMsg.c_str(), 0);
 }
 
 void test_METHOD_askSystemRestart_SHOULD_return_request_a_restart_AND_return_result_WITH_success_to_true(
     void)
 {
-  Result result = controllerTest.askSystemRestart();
+  Result<String> result = controllerTest.askSystemRestart();
 
   TEST_ASSERT_TRUE(result.isSuccess);
   TEST_ASSERT_TRUE(FakeSystemManager::requestRestartCalled);
-  TEST_ASSERT_EQUAL_STRING("Message serialized", result.data.c_str());
-  TEST_ASSERT_EQUAL_STRING_LEN("", result.error.c_str(), 0);
+  TEST_ASSERT_EQUAL_STRING_LEN("", result.errorMsg.c_str(), 0);
 }
 
 void test_METHOD_fetchRemote_WITH_unspecified_id_SHOULD_return_result_WITH_success_to_false(void)
 {
-  Result result = controllerTest.fetchRemote(0);
+  Result<Remote> result = controllerTest.fetchRemote(0);
 
-  TEST_ASSERT_EQUAL_STRING_LEN("", result.data.c_str(), 0);
+  TEST_ASSERT_EQUAL(0, result.data.id); // an empty remote
   TEST_ASSERT_FALSE(result.isSuccess);
-  TEST_ASSERT_GREATER_OR_EQUAL(1, result.error.length());
+  TEST_ASSERT_GREATER_OR_EQUAL(1, result.errorMsg.length());
 }
 
 void test_METHOD_fetchRemote_WITH_remote_not_found_SHOULD_return_result_WITH_success_to_false(void)
 {
   FakeDatabase::shouldReturnEmptyRemote = true;
 
-  Result result = controllerTest.fetchRemote(1);
+  Result<Remote> result = controllerTest.fetchRemote(1);
 
-  TEST_ASSERT_EQUAL_STRING_LEN("", result.data.c_str(), 0);
+  TEST_ASSERT_EQUAL(0, result.data.id); // an empty remote
   TEST_ASSERT_FALSE(result.isSuccess);
-  TEST_ASSERT_GREATER_OR_EQUAL(1, result.error.length());
+  TEST_ASSERT_GREATER_OR_EQUAL(1, result.errorMsg.length());
 }
 
 void test_METHOD_fetchRemote_SHOULD_return_result_WITH_success_to_true(void)
 {
-  Result result = controllerTest.fetchRemote(1);
+  Result<Remote> result = controllerTest.fetchRemote(1);
 
-  TEST_ASSERT_EQUAL_STRING("Remote serialized", result.data.c_str());
+  TEST_ASSERT_EQUAL(1, result.data.id);
+  TEST_ASSERT_EQUAL(42, result.data.rollingCode);
+  TEST_ASSERT_EQUAL_STRING("foo", result.data.name);
   TEST_ASSERT_TRUE(result.isSuccess);
-  TEST_ASSERT_EQUAL_STRING_LEN("", result.error.c_str(), 0);
+  TEST_ASSERT_EQUAL_STRING_LEN("", result.errorMsg.c_str(), 0);
 }
 
 void test_METHOD_fetchAllRemotes_SHOULD_return_result_WITH_success_to_true(void)
 {
-  Result result = controllerTest.fetchAllRemotes();
+  Result<Remote[MAX_REMOTES]> result = controllerTest.fetchAllRemotes();
 
-  TEST_ASSERT_EQUAL_STRING("Remotes serialized", result.data.c_str());
+  // TODO assert result.data == empty array (as in fakeDatabase) ?
   TEST_ASSERT_TRUE(result.isSuccess);
-  TEST_ASSERT_EQUAL_STRING_LEN("", result.error.c_str(), 0);
+  TEST_ASSERT_EQUAL_STRING_LEN("", result.errorMsg.c_str(), 0);
 }
 
 void test_METHOD_createRemote_WITH_null_name_SHOULD_return_result_WITH_success_to_false(void)
 {
-  Result result = controllerTest.createRemote(nullptr);
+  Result<Remote> result = controllerTest.createRemote(nullptr);
 
-  TEST_ASSERT_EQUAL_STRING_LEN("", result.data.c_str(), 0);
+  TEST_ASSERT_EQUAL(0, result.data.id); // an empty remote
   TEST_ASSERT_FALSE(result.isSuccess);
-  TEST_ASSERT_GREATER_OR_EQUAL(1, result.error.length());
+  TEST_ASSERT_GREATER_OR_EQUAL(1, result.errorMsg.length());
 }
 
 void test_METHOD_createRemote_WITH_empty_name_SHOULD_return_result_WITH_success_to_false(void)
 {
-  Result result = controllerTest.createRemote("");
+  Result<Remote> result = controllerTest.createRemote("");
 
-  TEST_ASSERT_EQUAL_STRING_LEN("", result.data.c_str(), 0);
+  TEST_ASSERT_EQUAL(0, result.data.id); // an empty remote
   TEST_ASSERT_FALSE(result.isSuccess);
-  TEST_ASSERT_GREATER_OR_EQUAL(1, result.error.length());
+  TEST_ASSERT_GREATER_OR_EQUAL(1, result.errorMsg.length());
 }
 
 void test_METHOD_createRemote_WITH_name_too_long_SHOULD_return_result_WITH_success_to_false(void)
 {
-  Result result = controllerTest.createRemote("foo bar baz foo bar baz foo");
+  Result<Remote> result = controllerTest.createRemote("foo bar baz foo bar baz foo");
 
-  TEST_ASSERT_EQUAL_STRING_LEN("", result.data.c_str(), 0);
+  TEST_ASSERT_EQUAL(0, result.data.id); // an empty remote
   TEST_ASSERT_FALSE(result.isSuccess);
-  TEST_ASSERT_GREATER_OR_EQUAL(1, result.error.length());
+  TEST_ASSERT_GREATER_OR_EQUAL(1, result.errorMsg.length());
 }
 
 void test_METHOD_createRemote_WITH_database_fail_SHOULD_return_result_WITH_success_to_false(void)
 {
   FakeDatabase::shouldFailCreateRemote = true;
-  Result result = controllerTest.createRemote("foo");
+  Result<Remote> result = controllerTest.createRemote("foo");
 
-  TEST_ASSERT_EQUAL_STRING_LEN("", result.data.c_str(), 0);
+  TEST_ASSERT_EQUAL(0, result.data.id); // an empty remote
   TEST_ASSERT_FALSE(result.isSuccess);
-  TEST_ASSERT_GREATER_OR_EQUAL(1, result.error.length());
+  TEST_ASSERT_GREATER_OR_EQUAL(1, result.errorMsg.length());
 }
 
 void test_METHOD_createRemote_SHOULD_return_result_WITH_success_to_true(void)
 {
-  Result result = controllerTest.createRemote("foo");
+  Result<Remote> result = controllerTest.createRemote("foo");
 
-  TEST_ASSERT_EQUAL_STRING("Remote serialized", result.data.c_str());
+  TEST_ASSERT_EQUAL(1, result.data.id);
+  TEST_ASSERT_EQUAL(0, result.data.rollingCode);
+  TEST_ASSERT_EQUAL_STRING("foo", result.data.name);
   TEST_ASSERT_TRUE(result.isSuccess);
-  TEST_ASSERT_EQUAL_STRING_LEN("", result.error.c_str(), 0);
+  TEST_ASSERT_EQUAL_STRING_LEN("", result.errorMsg.c_str(), 0);
 }
 
 void test_METHOD_deleteRemote_WITH_empty_remote_id_SHOULD_return_result_WITH_success_to_false(void)
 {
-  Result result = controllerTest.deleteRemote(0);
+  Result<Remote> result = controllerTest.deleteRemote(0);
 
-  TEST_ASSERT_EQUAL_STRING_LEN("", result.data.c_str(), 0);
+  TEST_ASSERT_EQUAL(0, result.data.id); // an empty remote
   TEST_ASSERT_FALSE(result.isSuccess);
-  TEST_ASSERT_GREATER_OR_EQUAL(1, result.error.length());
+  TEST_ASSERT_GREATER_OR_EQUAL(1, result.errorMsg.length());
 }
 
 void test_METHOD_deleteRemote_WITH_database_fail_SHOULD_return_result_WITH_success_to_false(void)
 {
   FakeDatabase::shouldFailDeleteRemote = true;
 
-  Result result = controllerTest.deleteRemote(1);
+  Result<Remote> result = controllerTest.deleteRemote(1);
 
-  TEST_ASSERT_EQUAL_STRING_LEN("", result.data.c_str(), 0);
+  TEST_ASSERT_EQUAL(0, result.data.id); // an empty remote
   TEST_ASSERT_FALSE(result.isSuccess);
-  TEST_ASSERT_GREATER_OR_EQUAL(1, result.error.length());
+  TEST_ASSERT_GREATER_OR_EQUAL(1, result.errorMsg.length());
 }
 
 void test_METHOD_deleteRemote_SHOULD_return_result_WITH_success_to_true(void)
 {
-  Result result = controllerTest.deleteRemote(1);
+  Result<Remote> result = controllerTest.deleteRemote(1);
 
   TEST_ASSERT_TRUE(result.isSuccess);
-  TEST_ASSERT_EQUAL_STRING_LEN("", result.error.c_str(), 0);
+  TEST_ASSERT_EQUAL_STRING_LEN("", result.errorMsg.c_str(), 0);
 }
 
 void test_METHOD_updateRemote_WITH_empty_remote_id_SHOULD_return_result_WITH_success_to_false(void)
 {
-  Result result = controllerTest.updateRemote(0, nullptr, 0);
+  Result<Remote> result = controllerTest.updateRemote(0, nullptr, 0);
 
-  TEST_ASSERT_EQUAL_STRING_LEN("", result.data.c_str(), 0);
+  TEST_ASSERT_EQUAL(0, result.data.id); // an empty remote
   TEST_ASSERT_FALSE(result.isSuccess);
-  TEST_ASSERT_GREATER_OR_EQUAL(1, result.error.length());
+  TEST_ASSERT_GREATER_OR_EQUAL(1, result.errorMsg.length());
 }
 
 void test_METHOD_updateRemote_WITH_remote_not_found_SHOULD_return_result_WITH_success_to_false(void)
 {
   FakeDatabase::shouldReturnEmptyRemote = true;
 
-  Result result = controllerTest.updateRemote(1, nullptr, 0);
+  Result<Remote> result = controllerTest.updateRemote(1, nullptr, 0);
 
-  TEST_ASSERT_EQUAL_STRING_LEN("", result.data.c_str(), 0);
+  TEST_ASSERT_EQUAL(0, result.data.id); // an empty remote
   TEST_ASSERT_FALSE(result.isSuccess);
-  TEST_ASSERT_GREATER_OR_EQUAL(1, result.error.length());
+  TEST_ASSERT_GREATER_OR_EQUAL(1, result.errorMsg.length());
 }
 
 void test_METHOD_updateRemote_WITH_valid_remote_AND_name_too_long_SHOULD_return_result_WITH_success_to_false(
     void)
 {
-  Result result = controllerTest.updateRemote(1, "foo bar baz foo bar baz", 0);
+  Result<Remote> result = controllerTest.updateRemote(1, "foo bar baz foo bar baz", 0);
 
-  TEST_ASSERT_EQUAL_STRING_LEN("", result.data.c_str(), 0);
+  TEST_ASSERT_EQUAL(0, result.data.id); // an empty remote
   TEST_ASSERT_FALSE(result.isSuccess);
-  TEST_ASSERT_GREATER_OR_EQUAL(1, result.error.length());
+  TEST_ASSERT_GREATER_OR_EQUAL(1, result.errorMsg.length());
 }
 
 void test_METHOD_updateRemote_WITH_valid_remote_AND_null_name_SHOULD_return_result_WITH_success_to_true(
     void)
 {
-  Result result = controllerTest.updateRemote(1, nullptr, 0);
+  Result<Remote> result = controllerTest.updateRemote(1, nullptr, 0);
 
-  TEST_ASSERT_EQUAL_STRING("Remote serialized", result.data.c_str());
+  TEST_ASSERT_EQUAL(1, result.data.id);
+  TEST_ASSERT_EQUAL(42, result.data.rollingCode); // Update rolling code is not authorized yet.
+  TEST_ASSERT_EQUAL_STRING("foo", result.data.name);
   TEST_ASSERT_TRUE(result.isSuccess);
-  TEST_ASSERT_EQUAL_STRING_LEN("", result.error.c_str(), 0);
+  TEST_ASSERT_EQUAL_STRING_LEN("", result.errorMsg.c_str(), 0);
 }
 
 void test_METHOD_updateRemote_WITH_valid_remote_AND_valid_name_SHOULD_return_result_WITH_success_to_true(
     void)
 {
-  Result result = controllerTest.updateRemote(1, "foo", 0);
+  Result<Remote> result = controllerTest.updateRemote(1, "bar", 0);
 
-  TEST_ASSERT_EQUAL_STRING("Remote serialized", result.data.c_str());
+  TEST_ASSERT_EQUAL(1, result.data.id);
+  TEST_ASSERT_EQUAL(42, result.data.rollingCode); // Update rolling code is not authorized yet.
+  TEST_ASSERT_EQUAL_STRING("bar", result.data.name);
   TEST_ASSERT_TRUE(result.isSuccess);
-  TEST_ASSERT_EQUAL_STRING_LEN("", result.error.c_str(), 0);
+  TEST_ASSERT_EQUAL_STRING_LEN("", result.errorMsg.c_str(), 0);
 }
 
 void test_METHOD_updateRemote_WITH_valid_remote_AND_rolling_code_provided_SHOULD_return_result_WITH_success_to_true(
     void)
 {
-  Result result = controllerTest.updateRemote(1, nullptr, 42);
+  Result<Remote> result = controllerTest.updateRemote(1, nullptr, 42);
 
-  TEST_ASSERT_EQUAL_STRING("Remote serialized", result.data.c_str());
+  TEST_ASSERT_EQUAL(1, result.data.id);
+  TEST_ASSERT_EQUAL(42, result.data.rollingCode);
+  TEST_ASSERT_EQUAL_STRING("foo", result.data.name);
   TEST_ASSERT_TRUE(result.isSuccess);
-  TEST_ASSERT_EQUAL_STRING_LEN("", result.error.c_str(), 0);
+  TEST_ASSERT_EQUAL_STRING_LEN("", result.errorMsg.c_str(), 0);
 }
 
 void test_METHOD_updateRemote_WITH_valid_remote_AND_valid_data_AND_database_fail_SHOULD_return_result_WITH_success_to_false(
@@ -465,38 +439,38 @@ void test_METHOD_updateRemote_WITH_valid_remote_AND_valid_data_AND_database_fail
 {
   FakeDatabase::shouldFailUpdateRemote = true;
 
-  Result result = controllerTest.updateRemote(1, nullptr, 0);
+  Result<Remote> result = controllerTest.updateRemote(1, nullptr, 0);
 
-  TEST_ASSERT_EQUAL_STRING_LEN("", result.data.c_str(), 0);
+  TEST_ASSERT_EQUAL(0, result.data.id); // an empty remote
   TEST_ASSERT_FALSE(result.isSuccess);
-  TEST_ASSERT_GREATER_OR_EQUAL(1, result.error.length());
+  TEST_ASSERT_GREATER_OR_EQUAL(1, result.errorMsg.length());
 }
 
 void test_METHOD_operateRemote_WITH_empty_remote_id_SHOULD_return_result_WITH_success_to_false(void)
 {
-  Result result = controllerTest.operateRemote(0, "up");
+  Result<String> result = controllerTest.operateRemote(0, "up");
 
   TEST_ASSERT_EQUAL_STRING_LEN("", result.data.c_str(), 0);
   TEST_ASSERT_FALSE(result.isSuccess);
-  TEST_ASSERT_GREATER_OR_EQUAL(1, result.error.length());
+  TEST_ASSERT_GREATER_OR_EQUAL(1, result.errorMsg.length());
 }
 
 void test_METHOD_operateRemote_WITH_null_action_SHOULD_return_result_WITH_success_to_false(void)
 {
-  Result result = controllerTest.operateRemote(1, nullptr);
+  Result<String> result = controllerTest.operateRemote(1, nullptr);
 
   TEST_ASSERT_EQUAL_STRING_LEN("", result.data.c_str(), 0);
   TEST_ASSERT_FALSE(result.isSuccess);
-  TEST_ASSERT_GREATER_OR_EQUAL(1, result.error.length());
+  TEST_ASSERT_GREATER_OR_EQUAL(1, result.errorMsg.length());
 }
 
 void test_METHOD_operateRemote_WITH_empty_action_SHOULD_return_result_WITH_success_to_false(void)
 {
-  Result result = controllerTest.operateRemote(1, "");
+  Result<String> result = controllerTest.operateRemote(1, "");
 
   TEST_ASSERT_EQUAL_STRING_LEN("", result.data.c_str(), 0);
   TEST_ASSERT_FALSE(result.isSuccess);
-  TEST_ASSERT_GREATER_OR_EQUAL(1, result.error.length());
+  TEST_ASSERT_GREATER_OR_EQUAL(1, result.errorMsg.length());
 }
 
 void test_METHOD_operateRemote_WITH_not_found_remote_SHOULD_return_result_WITH_success_to_false(
@@ -504,123 +478,126 @@ void test_METHOD_operateRemote_WITH_not_found_remote_SHOULD_return_result_WITH_s
 {
   FakeDatabase::shouldReturnEmptyRemote = true;
 
-  Result result = controllerTest.operateRemote(1, "up");
+  Result<String> result = controllerTest.operateRemote(1, "up");
 
   TEST_ASSERT_EQUAL_STRING_LEN("", result.data.c_str(), 0);
   TEST_ASSERT_FALSE(result.isSuccess);
-  TEST_ASSERT_GREATER_OR_EQUAL(1, result.error.length());
+  TEST_ASSERT_GREATER_OR_EQUAL(1, result.errorMsg.length());
 }
 
 void test_METHOD_operateRemote_WITH_unknown_action_SHOULD_return_result_WITH_success_to_false(void)
 {
-  Result result = controllerTest.operateRemote(1, "foo");
+  Result<String> result = controllerTest.operateRemote(1, "foo");
 
   TEST_ASSERT_EQUAL_STRING_LEN("", result.data.c_str(), 0);
   TEST_ASSERT_FALSE(result.isSuccess);
-  TEST_ASSERT_GREATER_OR_EQUAL(1, result.error.length());
+  TEST_ASSERT_GREATER_OR_EQUAL(1, result.errorMsg.length());
 }
 
 void test_METHOD_operateRemote_WITH_valide_remote_AND_up_action_SHOULD_return_result_WITH_success_to_true(
     void)
 {
-  Result result = controllerTest.operateRemote(1, "up");
+  Result<String> result = controllerTest.operateRemote(1, "up");
 
   TEST_ASSERT_EQUAL_STRING("Command UP sent.", result.data.c_str());
   TEST_ASSERT_TRUE(result.isSuccess);
-  TEST_ASSERT_EQUAL_STRING_LEN("", result.error.c_str(), 0);
+  TEST_ASSERT_EQUAL_STRING_LEN("", result.errorMsg.c_str(), 0);
   TEST_ASSERT_TRUE(FakeTransmitter::sendUPCommandCalled);
 }
 
 void test_METHOD_operateRemote_WITH_valide_remote_AND_stop_action_SHOULD_return_result_WITH_success_to_true(
     void)
 {
-  Result result = controllerTest.operateRemote(1, "stop");
+  Result<String> result = controllerTest.operateRemote(1, "stop");
 
   TEST_ASSERT_EQUAL_STRING("Command STOP sent.", result.data.c_str());
   TEST_ASSERT_TRUE(result.isSuccess);
-  TEST_ASSERT_EQUAL_STRING_LEN("", result.error.c_str(), 0);
+  TEST_ASSERT_EQUAL_STRING_LEN("", result.errorMsg.c_str(), 0);
   TEST_ASSERT_TRUE(FakeTransmitter::sendSTOPCommandCalled);
 }
 
 void test_METHOD_operateRemote_WITH_valide_remote_AND_down_action_SHOULD_return_result_WITH_success_to_true(
     void)
 {
-  Result result = controllerTest.operateRemote(1, "down");
+  Result<String> result = controllerTest.operateRemote(1, "down");
 
   TEST_ASSERT_EQUAL_STRING("Command DOWN sent.", result.data.c_str());
   TEST_ASSERT_TRUE(result.isSuccess);
-  TEST_ASSERT_EQUAL_STRING_LEN("", result.error.c_str(), 0);
+  TEST_ASSERT_EQUAL_STRING_LEN("", result.errorMsg.c_str(), 0);
   TEST_ASSERT_TRUE(FakeTransmitter::sendDOWNCommandCalled);
 }
 
 void test_METHOD_operateRemote_WITH_valide_remote_AND_pair_action_SHOULD_return_result_WITH_success_to_true(
     void)
 {
-  Result result = controllerTest.operateRemote(1, "pair");
+  Result<String> result = controllerTest.operateRemote(1, "pair");
 
   TEST_ASSERT_EQUAL_STRING("Command PAIR sent.", result.data.c_str());
   TEST_ASSERT_TRUE(result.isSuccess);
-  TEST_ASSERT_EQUAL_STRING_LEN("", result.error.c_str(), 0);
+  TEST_ASSERT_EQUAL_STRING_LEN("", result.errorMsg.c_str(), 0);
   TEST_ASSERT_TRUE(FakeTransmitter::sendPROGCommandCalled);
 }
 
 void test_METHOD_operateRemote_WITH_valide_remote_AND_reset_action_SHOULD_return_result_WITH_success_to_true(
     void)
 {
-  Result result = controllerTest.operateRemote(1, "reset");
+  Result<String> result = controllerTest.operateRemote(1, "reset");
 
   TEST_ASSERT_EQUAL_STRING("Rolling code reseted.", result.data.c_str());
   TEST_ASSERT_TRUE(result.isSuccess);
-  TEST_ASSERT_EQUAL_STRING_LEN("", result.error.c_str(), 0);
+  TEST_ASSERT_EQUAL_STRING_LEN("", result.errorMsg.c_str(), 0);
 }
 
 void test_METHOD_fetchNetworkConfiguration_SHOULD_return_result_WITH_success_to_true(void)
 {
-  Result result = controllerTest.fetchNetworkConfiguration();
+  Result<NetworkConfiguration> result = controllerTest.fetchNetworkConfiguration();
 
-  TEST_ASSERT_EQUAL_STRING("NetworkConfiguration serialized", result.data.c_str());
+  TEST_ASSERT_EQUAL_STRING("foo", result.data.ssid);
+  TEST_ASSERT_EQUAL_STRING("bar", result.data.password);
   TEST_ASSERT_TRUE(result.isSuccess);
-  TEST_ASSERT_EQUAL_STRING_LEN("", result.error.c_str(), 0);
+  TEST_ASSERT_EQUAL_STRING_LEN("", result.errorMsg.c_str(), 0);
 }
 
 void test_METHOD_updateNetworkConfiguration_WITH_valid_data_SHOULD_return_result_WITH_success_to_true(
     void)
 {
-  Result result = controllerTest.updateNetworkConfiguration("foo", "bar");
+  Result<NetworkConfiguration> result = controllerTest.updateNetworkConfiguration("foo", "bar");
 
-  TEST_ASSERT_EQUAL_STRING("NetworkConfiguration serialized", result.data.c_str());
+  TEST_ASSERT_EQUAL_STRING("foo", result.data.ssid);
+  TEST_ASSERT_EQUAL_STRING("bar", result.data.password);
   TEST_ASSERT_TRUE(result.isSuccess);
-  TEST_ASSERT_EQUAL_STRING_LEN("", result.error.c_str(), 0);
+  TEST_ASSERT_EQUAL_STRING_LEN("", result.errorMsg.c_str(), 0);
 }
 
 void test_METHOD_updateNetworkConfiguration_WITH_valid_data_AND_empty_password_SHOULD_return_result_WITH_success_to_true(
     void)
 {
-  Result result = controllerTest.updateNetworkConfiguration("foo", nullptr);
+  Result<NetworkConfiguration> result = controllerTest.updateNetworkConfiguration("foo", nullptr);
 
-  TEST_ASSERT_EQUAL_STRING("NetworkConfiguration serialized", result.data.c_str());
   TEST_ASSERT_TRUE(result.isSuccess);
-  TEST_ASSERT_EQUAL_STRING_LEN("", result.error.c_str(), 0);
+  TEST_ASSERT_EQUAL_STRING_LEN("", result.errorMsg.c_str(), 0);
 }
 
 void test_METHOD_updateNetworkConfiguration_WITH_null_SSID_SHOULD_return_result_WITH_success_to_false(
     void)
 {
-  Result result = controllerTest.updateNetworkConfiguration(nullptr, nullptr);
+  Result<NetworkConfiguration> result = controllerTest.updateNetworkConfiguration(nullptr, nullptr);
 
-  TEST_ASSERT_EQUAL_STRING_LEN("", result.data.c_str(), 0);
+  TEST_ASSERT_EQUAL_STRING("", result.data.ssid);
+  TEST_ASSERT_EQUAL_STRING("", result.data.password);
   TEST_ASSERT_FALSE(result.isSuccess);
-  TEST_ASSERT_GREATER_OR_EQUAL(1, result.error.length());
+  TEST_ASSERT_GREATER_OR_EQUAL(1, result.errorMsg.length());
 }
 
 void test_METHOD_updateNetworkConfiguration_WITH_empty_SSID_SHOULD_return_result_WITH_success_to_false(
     void)
 {
-  Result result = controllerTest.updateNetworkConfiguration("", nullptr);
+  Result<NetworkConfiguration> result = controllerTest.updateNetworkConfiguration("", nullptr);
 
-  TEST_ASSERT_EQUAL_STRING_LEN("", result.data.c_str(), 0);
+  TEST_ASSERT_EQUAL_STRING("", result.data.ssid);
+  TEST_ASSERT_EQUAL_STRING("", result.data.password);
   TEST_ASSERT_FALSE(result.isSuccess);
-  TEST_ASSERT_GREATER_OR_EQUAL(1, result.error.length());
+  TEST_ASSERT_GREATER_OR_EQUAL(1, result.errorMsg.length());
 }
 
 void test_METHOD_updateNetworkConfiguration_WITH_update_fail_SHOULD_return_result_WITH_success_to_false(
@@ -628,70 +605,90 @@ void test_METHOD_updateNetworkConfiguration_WITH_update_fail_SHOULD_return_resul
 {
   FakeDatabase::shouldFailUpdateNetworkConfiguration = true;
 
-  Result result = controllerTest.updateNetworkConfiguration("foo", nullptr);
+  Result<NetworkConfiguration> result = controllerTest.updateNetworkConfiguration("foo", nullptr);
 
-  TEST_ASSERT_EQUAL_STRING_LEN("", result.data.c_str(), 0);
+  TEST_ASSERT_EQUAL_STRING("foo", result.data.ssid);
+  TEST_ASSERT_EQUAL_STRING("", result.data.password);
   TEST_ASSERT_FALSE(result.isSuccess);
-  TEST_ASSERT_GREATER_OR_EQUAL(1, result.error.length());
+  TEST_ASSERT_GREATER_OR_EQUAL(1, result.errorMsg.length());
 }
 
 void test_METHOD_fetchMQTTConfiguration_SHOULD_return_result_WITH_success_to_true(void)
 {
-  Result result = controllerTest.fetchMQTTConfiguration();
+  Result<MQTTConfiguration> result = controllerTest.fetchMQTTConfiguration();
 
-  TEST_ASSERT_EQUAL_STRING("MQTTConfiguration serialized", result.data.c_str());
+  TEST_ASSERT_TRUE(result.data.enabled);
+  TEST_ASSERT_EQUAL_STRING("foo.foo", result.data.broker);
+  TEST_ASSERT_EQUAL_STRING("foo", result.data.username);
+  TEST_ASSERT_EQUAL_STRING("bar", result.data.password);
+  TEST_ASSERT_EQUAL(1234, result.data.port);
   TEST_ASSERT_TRUE(result.isSuccess);
-  TEST_ASSERT_EQUAL_STRING_LEN("", result.error.c_str(), 0);
+  TEST_ASSERT_EQUAL_STRING_LEN("", result.errorMsg.c_str(), 0);
 }
 
 void test_METHOD_updateMQTTConfiguration_WITH_valid_data_SHOULD_return_result_WITH_success_to_true(
     void)
 {
-  Result result = controllerTest.updateMQTTConfiguration(true, "foo", 42, "bar", "baz");
+  Result<MQTTConfiguration> result
+      = controllerTest.updateMQTTConfiguration(true, "foo", 42, "bar", "baz");
 
-  TEST_ASSERT_EQUAL_STRING("MQTTConfiguration serialized", result.data.c_str());
+  TEST_ASSERT_TRUE(result.data.enabled);
+  TEST_ASSERT_EQUAL_STRING("foo", result.data.broker);
+  TEST_ASSERT_EQUAL_STRING("bar", result.data.username);
+  TEST_ASSERT_EQUAL_STRING("baz", result.data.password);
+  TEST_ASSERT_EQUAL(42, result.data.port);
   TEST_ASSERT_TRUE(result.isSuccess);
-  TEST_ASSERT_EQUAL_STRING_LEN("", result.error.c_str(), 0);
+  TEST_ASSERT_EQUAL_STRING_LEN("", result.errorMsg.c_str(), 0);
 }
 
 void test_METHOD_updateMQTTConfiguration_WITH_empty_port_SHOULD_return_result_WITH_success_to_false(
     void)
 {
-  Result result = controllerTest.updateMQTTConfiguration(true, "foo", 0, "bar", "baz");
+  Result<MQTTConfiguration> result
+      = controllerTest.updateMQTTConfiguration(true, "foo", 0, "bar", "baz");
 
-  TEST_ASSERT_EQUAL_STRING_LEN("", result.data.c_str(), 0);
   TEST_ASSERT_FALSE(result.isSuccess);
-  TEST_ASSERT_GREATER_OR_EQUAL(1, result.error.length());
+  TEST_ASSERT_GREATER_OR_EQUAL(1, result.errorMsg.length());
 }
 
 void test_METHOD_updateMQTTConfiguration_WITH_null_broker_SHOULD_return_result_WITH_success_to_true_AND_enabled_to_false(
     void)
 {
-  Result result = controllerTest.updateMQTTConfiguration(true, nullptr, 42, "bar", "baz");
+  Result<MQTTConfiguration> result
+      = controllerTest.updateMQTTConfiguration(true, nullptr, 42, "bar", "baz");
 
-  TEST_ASSERT_EQUAL_STRING_LEN("", result.data.c_str(), 0);
   TEST_ASSERT_FALSE(result.isSuccess);
-  TEST_ASSERT_GREATER_OR_EQUAL(1, result.error.length());
+  TEST_ASSERT_GREATER_OR_EQUAL(1, result.errorMsg.length());
 }
 
 void test_METHOD_updateMQTTConfiguration_WITH_null_username_SHOULD_return_result_WITH_success_to_true(
     void)
 {
-  Result result = controllerTest.updateMQTTConfiguration(true, "foo", 42, nullptr, "bar");
+  Result<MQTTConfiguration> result
+      = controllerTest.updateMQTTConfiguration(true, "foo", 42, nullptr, "bar");
 
-  TEST_ASSERT_EQUAL_STRING("MQTTConfiguration serialized", result.data.c_str());
+  TEST_ASSERT_TRUE(result.data.enabled);
+  TEST_ASSERT_EQUAL_STRING("foo", result.data.broker);
+  TEST_ASSERT_EQUAL_STRING("", result.data.username);
+  TEST_ASSERT_EQUAL_STRING("bar", result.data.password);
+  TEST_ASSERT_EQUAL(42, result.data.port);
   TEST_ASSERT_TRUE(result.isSuccess);
-  TEST_ASSERT_EQUAL_STRING_LEN("", result.error.c_str(), 0);
+  TEST_ASSERT_EQUAL_STRING_LEN("", result.errorMsg.c_str(), 0);
 }
 
 void test_METHOD_updateMQTTConfiguration_WITH_null_password_SHOULD_return_result_WITH_success_to_true(
     void)
 {
-  Result result = controllerTest.updateMQTTConfiguration(true, "foo", 42, "baz", nullptr);
+  Result<MQTTConfiguration> result
+      = controllerTest.updateMQTTConfiguration(true, "foo", 42, "baz", nullptr);
 
-  TEST_ASSERT_EQUAL_STRING("MQTTConfiguration serialized", result.data.c_str());
+  TEST_ASSERT_TRUE(result.data.enabled);
+  TEST_ASSERT_EQUAL_STRING("foo", result.data.broker);
+  TEST_ASSERT_EQUAL_STRING("baz", result.data.username);
+  TEST_ASSERT_EQUAL_STRING("", result.data.password);
+  TEST_ASSERT_EQUAL(42, result.data.port);
   TEST_ASSERT_TRUE(result.isSuccess);
-  TEST_ASSERT_EQUAL_STRING_LEN("", result.error.c_str(), 0);
+  TEST_ASSERT_EQUAL_STRING_LEN("", result.errorMsg.c_str(), 0);
 }
 
 void test_METHOD_updateMQTTConfiguration_WITH_update_fail_SHOULD_return_result_WITH_success_to_false(
@@ -699,9 +696,9 @@ void test_METHOD_updateMQTTConfiguration_WITH_update_fail_SHOULD_return_result_W
 {
   FakeDatabase::shouldFailUpdateMQTTConfiguration = true;
 
-  Result result = controllerTest.updateMQTTConfiguration(true, "foo", 42, "bar", "baz");
+  Result<MQTTConfiguration> result
+      = controllerTest.updateMQTTConfiguration(true, "foo", 42, "bar", "baz");
 
-  TEST_ASSERT_EQUAL_STRING_LEN("", result.data.c_str(), 0);
   TEST_ASSERT_FALSE(result.isSuccess);
-  TEST_ASSERT_GREATER_OR_EQUAL(1, result.error.length());
+  TEST_ASSERT_GREATER_OR_EQUAL(1, result.errorMsg.length());
 }

@@ -40,8 +40,8 @@
 #include <transmitterAbs.h>
 #include <networkClientAbs.h>
 
-Controller::Controller(DatabaseAbstract* database, NetworkClientAbstract* networkClient, TransmitterAbstract* transmitter,
-    SystemManagerAbstract* systemManager)
+Controller::Controller(DatabaseAbstract* database, NetworkClientAbstract* networkClient,
+    TransmitterAbstract* transmitter, SystemManagerAbstract* systemManager)
     : m_database(database)
     , m_networkClient(networkClient)
     , m_transmitter(transmitter)
@@ -83,6 +83,7 @@ Result<Remote> Controller::fetchRemote(const unsigned long id)
 {
   LOG_DEBUG("Fetching Remote...");
   Result<Remote> result;
+  result.data = Remote { 0, 0, "" };
   if (id == 0)
   {
     LOG_ERROR("The remote id is not specified.");
@@ -129,6 +130,7 @@ Result<Remote> Controller::createRemote(const char* name)
 {
   LOG_DEBUG("Creating a new Remote...");
   Result<Remote> result;
+  result.data = Remote { 0, 0, "" };
   if (name == nullptr)
   {
     LOG_ERROR("The name of the remote should be specified.");
@@ -175,6 +177,7 @@ Result<Remote> Controller::deleteRemote(const unsigned long id)
 {
   LOG_DEBUG("Deleting Remote...");
   Result<Remote> result;
+  result.data = Remote { 0, 0, "" };
   if (id == 0)
   {
     LOG_ERROR("The remote id is not specified.");
@@ -213,6 +216,7 @@ Result<Remote> Controller::updateRemote(
 {
   LOG_DEBUG("Updating Remote...");
   Result<Remote> result;
+  result.data = Remote { 0, 0, "" };
   if (id == 0)
   {
     LOG_ERROR("The remote id should be specified.");
@@ -349,7 +353,7 @@ Result<String> Controller::operateRemote(const unsigned long id, const char* act
     remote.rollingCode = 0;
     this->notify("remote-reset", remote);
     this->m_database->updateRemote(remote);
-    this->notify("remote-update",  remote);
+    this->notify("remote-update", remote);
     result.isSuccess = true;
     result.data = "Rolling code reseted.";
     return result;
@@ -365,7 +369,7 @@ Result<String> Controller::operateRemote(const unsigned long id, const char* act
   remote.rollingCode += 1; // increment rollingCode
   this->m_database->updateRemote(remote);
 
-  this->notify("remote-update",  remote);
+  this->notify("remote-update", remote);
 
   LOG_INFO("Command sent through the remote", remote.id);
   return result;
@@ -387,10 +391,9 @@ Result<NetworkConfiguration> Controller::fetchNetworkConfiguration()
   LOG_DEBUG("Fetching Network Configuration...");
   Result<NetworkConfiguration> result;
 
-  NetworkConfiguration networkConfig = this->m_database->getNetworkConfiguration();
-
+  result.data = this->m_database->getNetworkConfiguration();
   result.isSuccess = true;
-  result.data = networkConfig;
+
   return result;
 }
 
@@ -399,6 +402,9 @@ Result<NetworkConfiguration> Controller::updateNetworkConfiguration(
 {
   LOG_DEBUG("Updating Network Configuration...");
   Result<NetworkConfiguration> result;
+  strcpy(result.data.ssid, "");
+  strcpy(result.data.password, "");
+
   if (ssid == nullptr)
   {
     LOG_ERROR("The ssid should be specified.");
@@ -413,8 +419,7 @@ Result<NetworkConfiguration> Controller::updateNetworkConfiguration(
     return result;
   }
 
-  NetworkConfiguration networkConfig;
-  strcpy(networkConfig.ssid, ssid);
+  strcpy(result.data.ssid, ssid);
 
   if (password == nullptr)
   {
@@ -422,10 +427,10 @@ Result<NetworkConfiguration> Controller::updateNetworkConfiguration(
   }
   else
   {
-    strcpy(networkConfig.password, password);
+    strcpy(result.data.password, password);
   }
 
-  bool isUpdated = this->m_database->setNetworkConfiguration(networkConfig);
+  bool isUpdated = this->m_database->setNetworkConfiguration(result.data);
 
   if (!isUpdated)
   {
@@ -435,7 +440,6 @@ Result<NetworkConfiguration> Controller::updateNetworkConfiguration(
   }
 
   result.isSuccess = true;
-  result.data = networkConfig;
   LOG_DEBUG("Network Configuration updated.");
   return result;
 }
@@ -445,10 +449,8 @@ Result<MQTTConfiguration> Controller::fetchMQTTConfiguration()
   LOG_DEBUG("Fetching MQTT Configuration...");
   Result<MQTTConfiguration> result;
 
-  MQTTConfiguration mqttConfig = this->m_database->getMQTTConfiguration();
-
+  result.data = this->m_database->getMQTTConfiguration();
   result.isSuccess = true;
-  result.data = mqttConfig;
 
   return result;
 }
@@ -458,6 +460,7 @@ Result<MQTTConfiguration> Controller::updateMQTTConfiguration(const bool& enable
 {
   LOG_DEBUG("Updating MQTT Configuration...");
   Result<MQTTConfiguration> result;
+  result.data = MQTTConfiguration { false, "", 0, "", "" };
 
   if (broker == nullptr)
   {
@@ -473,17 +476,16 @@ Result<MQTTConfiguration> Controller::updateMQTTConfiguration(const bool& enable
     return result;
   }
 
-  MQTTConfiguration mqttConfig;
-  mqttConfig.enabled = enabled;
+  result.data.enabled = enabled;
 
   if (strlen(broker) == 0)
   {
     LOG_WARN("The broker is empty. The MQTT will be disabled.");
-    mqttConfig.enabled = false;
+    result.data.enabled = false;
   }
 
-  strcpy(mqttConfig.broker, broker);
-  mqttConfig.port = port;
+  strcpy(result.data.broker, broker);
+  result.data.port = port;
 
   if (username == nullptr)
   {
@@ -491,7 +493,7 @@ Result<MQTTConfiguration> Controller::updateMQTTConfiguration(const bool& enable
   }
   else
   {
-    strcpy(mqttConfig.username, username);
+    strcpy(result.data.username, username);
   }
 
   if (password == nullptr)
@@ -500,10 +502,10 @@ Result<MQTTConfiguration> Controller::updateMQTTConfiguration(const bool& enable
   }
   else
   {
-    strcpy(mqttConfig.password, password);
+    strcpy(result.data.password, password);
   }
 
-  bool isUpdated = this->m_database->setMQTTConfiguration(mqttConfig);
+  bool isUpdated = this->m_database->setMQTTConfiguration(result.data);
   if (!isUpdated)
   {
     LOG_ERROR("Something went wrong while updating the MQTT Configuration");
@@ -512,7 +514,6 @@ Result<MQTTConfiguration> Controller::updateMQTTConfiguration(const bool& enable
   }
 
   result.isSuccess = true;
-  result.data = mqttConfig;
   LOG_DEBUG("MQTT Configuration updated.");
   return result;
 }
