@@ -38,11 +38,13 @@
 class JSONSerializer : public SerializerAbstract
 {
   public:
+  String serializeMessage(const char* message);
   String serializeRemote(const Remote& remote);
   String serializeRemotes(const Remote remotes[], int size);
   String serializeNetworkConfig(const NetworkConfiguration& networkConfig);
   String serializeNetworks(const Network networks[], int size);
   String serializeSystemInfos(const SystemInfos& infos);
+  String serializeSystemInfos(const SystemInfosExtended& infos);
   String serializeMQTTConfig(const MQTTConfiguration& mqttConfig);
 
   private:

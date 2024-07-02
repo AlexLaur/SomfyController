@@ -36,6 +36,13 @@
 #include <systemInfos.h>
 #include <eepromDatabase.h>
 
+EEPROMDatabase::EEPROMDatabase() { }
+
+EEPROMDatabase::EEPROMDatabase(unsigned long remoteBaseAddress)
+    : m_remoteBaseAddress(remoteBaseAddress)
+{
+}
+
 /**
  * @brief Initialise the Database in the EEPROM of the ESP
  *
@@ -70,8 +77,9 @@ void EEPROMDatabase::fixIntegrity()
       continue;
     }
 
-    // An ID < REMOTE_BASE_ADDRESS OR ID > (REMOTE_BASE_ADDRESS + MAX_REMOTES) = Invalid
-    if (remoteRead.id < REMOTE_BASE_ADDRESS || remoteRead.id > (REMOTE_BASE_ADDRESS + MAX_REMOTES))
+    // An ID < this->m_remoteBaseAddress OR ID > (this->m_remoteBaseAddress + MAX_REMOTES) = Invalid
+    if (remoteRead.id < this->m_remoteBaseAddress
+        || remoteRead.id > (this->m_remoteBaseAddress + MAX_REMOTES))
     {
       if (remoteRead.id == 0)
       {
@@ -247,7 +255,7 @@ Remote EEPROMDatabase::createRemote(const char* name)
     LOG_ERROR("No space left. Cannot add a new remote.");
     return emptyRemote;
   }
-  emptyRemote.id = REMOTE_BASE_ADDRESS + index;
+  emptyRemote.id = this->m_remoteBaseAddress + index;
   emptyRemote.rollingCode = 0;
   strcpy(emptyRemote.name, name);
 

@@ -30,276 +30,33 @@
 #include <DebugLog.h>
 #include <LittleFS.h>
 #include <ESP8266WiFi.h>
-#include <ESPAsyncTCP.h>
-#include <ESPAsyncWebServer.h>
 
+#include <utils.h>
 #include <config.h>
 #include <remote.h>
 #include <networks.h>
+#include <webServer.h>
 #include <controller.h>
 #include <wifiClient.h>
+#include <mqttClient.h>
+#include <systemManager.h>
 #include <wifiAccessPoint.h>
 #include <RTSTransmitter.h>
 #include <eepromDatabase.h>
 #include <jsonSerializer.h>
 
-EEPROMDatabase database;
-WifiClient wifiClient;
 WifiAccessPoint wifiAP;
-JSONSerializer serializer;
 RTSTransmitter transmitter;
+SystemManager systemManager;
+NetworkWifiClient wifiClient;
+EEPROMDatabase database(macToLong(wifiClient.getMacAddress().c_str()));
 
-AsyncWebServer server(SERVER_PORT);
 Network networks[MAX_NETWORK_SCAN];
-Controller controller(&database, &wifiClient, &serializer, &transmitter);
+Controller controller(&database, &wifiClient, &transmitter, &systemManager);
 
-// ============================================================================
-// WEBSERVER CALLBACKS HTML
-// ============================================================================
-void homePage(AsyncWebServerRequest* request)
-{
-  LOG_DEBUG("HTML home page reached.");
-  request->send(LittleFS, "/index.html", String());
-};
-
-// ============================================================================
-// WEBSERVER CALLBACKS RESTAPI
-// ============================================================================
-void handleSystemRestart(AsyncWebServerRequest* request)
-{
-  LOG_INFO("Endpoint to restart module reached.");
-  request->send(200, "application/json", "{\"message\":\"Restarting...\"}");
-  ESP.restart();
-}
-
-void handleFetchSystemInfos(AsyncWebServerRequest* request)
-{
-  LOG_INFO("Endpoint to fetch system informations reached.");
-  Result result = controller.fetchSystemInfos();
-  if (!result.isSuccess)
-  {
-    request->send(400, "application/json", "{\"message\":\"" + result.error + "\"}");
-    return;
-  }
-  request->send(200, "application/json", result.data);
-}
-
-void handleFetchWifiNetworks(AsyncWebServerRequest* request)
-{
-  LOG_INFO("Endpoint to fetch Wifi Networks reached.");
-  String serialized = serializer.serializeNetworks(networks, MAX_NETWORK_SCAN);
-  request->send(200, "application/json", serialized);
-}
-
-void handleFetchWifiConfiguration(AsyncWebServerRequest* request)
-{
-  LOG_INFO("Endpoint to fetch Network Configuration reached.");
-  Result result = controller.fetchNetworkConfiguration();
-  if (!result.isSuccess)
-  {
-    request->send(400, "application/json", "{\"message\":\"" + result.error + "\"}");
-    return;
-  }
-  request->send(200, "application/json", result.data);
-}
-
-void handleUpdateWifiConfiguration(AsyncWebServerRequest* request)
-{
-  LOG_INFO("Endpoint to update the Wifi Configuration reached.");
-
-  String ssid;
-  String password;
-  if (request->hasParam("ssid", true))
-  {
-    AsyncWebParameter* p = request->getParam("ssid", true);
-    ssid = p->value();
-  }
-  if (request->hasParam("password", true))
-  {
-    AsyncWebParameter* p = request->getParam("password", true);
-    password = p->value();
-  }
-
-  Result result = controller.updateNetworkConfiguration(ssid.c_str(), password.c_str());
-  if (!result.isSuccess)
-  {
-    request->send(400, "application/json", "{\"message\":\"" + result.error + "\"}");
-    return;
-  }
-  request->send(200, "application/json", result.data);
-}
-
-void handleFetchMQTTConfiguration(AsyncWebServerRequest* request)
-{
-  LOG_INFO("Endpoint to fetch MQTT Configuration reached.");
-
-  Result result = controller.fetchMQTTConfiguration();
-  if (!result.isSuccess)
-  {
-    request->send(400, "application/json", "{\"message\":\"" + result.error + "\"}");
-    return;
-  }
-  request->send(200, "application/json", result.data);
-}
-
-void handleUpdateMQTTConfiguration(AsyncWebServerRequest* request)
-{
-  LOG_INFO("Endpoint to update the MQTT Wonfiguration reached.");
-
-  bool enabled = false;
-  String broker;
-  unsigned short port = 0;
-  String username;
-  String password;
-
-  if (request->hasParam("broker", true))
-  {
-    AsyncWebParameter* p = request->getParam("broker", true);
-    broker = p->value();
-  }
-  if (request->hasParam("username", true))
-  {
-    AsyncWebParameter* p = request->getParam("username", true);
-    username = p->value();
-  }
-  if (request->hasParam("password", true))
-  {
-    AsyncWebParameter* p = request->getParam("password", true);
-    password = p->value();
-  }
-  if (request->hasParam("port", true))
-  {
-    AsyncWebParameter* p = request->getParam("port", true);
-    port = p->value().toInt();
-  }
-  if (request->hasParam("enabled", true))
-  {
-    AsyncWebParameter* p = request->getParam("enabled", true);
-    if (p->value() == "true" || p->value() == "True")
-    {
-      enabled = true;
-    }
-  }
-
-  Result result = controller.updateMQTTConfiguration(
-      enabled, broker.c_str(), port, username.c_str(), password.c_str());
-  if (!result.isSuccess)
-  {
-    request->send(400, "application/json", "{\"message\":\"" + result.error + "\"}");
-    return;
-  }
-  request->send(200, "application/json", result.data);
-}
-
-void handleFetchAllRemotes(AsyncWebServerRequest* request)
-{
-  LOG_INFO("Endpoint to fetch all remotes reached.");
-  Result result = controller.fetchAllRemotes();
-  if (!result.isSuccess)
-  {
-    request->send(400, "application/json", "{\"message\":\"" + result.error + "\"}");
-    return;
-  }
-  request->send(200, "application/json", result.data);
-}
-
-void handleFetchRemote(AsyncWebServerRequest* request)
-{
-  LOG_INFO("Endpoint to fetch a remote reached.");
-  unsigned long remoteId = request->pathArg(0).toInt();
-
-  Result result = controller.fetchRemote(remoteId);
-  if (!result.isSuccess)
-  {
-    request->send(400, "application/json", "{\"message\":\"" + result.error + "\"}");
-    return;
-  }
-  request->send(200, "application/json", result.data);
-}
-
-void handleCreateRemote(AsyncWebServerRequest* request)
-{
-  LOG_INFO("Endpoint to create a remote reached.");
-
-  String name;
-  if (request->hasParam("name", true))
-  {
-    AsyncWebParameter* p = request->getParam("name", true);
-    name = p->value();
-  }
-
-  Result result = controller.createRemote(name.c_str());
-  if (!result.isSuccess)
-  {
-    request->send(400, "application/json", "{\"message\":\"" + result.error + "\"}");
-    return;
-  }
-  request->send(201, "application/json", result.data);
-}
-
-void handleUpdateRemote(AsyncWebServerRequest* request)
-{
-  LOG_INFO("Endpoint to update a remote reached.");
-  unsigned long remoteId = request->pathArg(0).toInt();
-
-  String name;
-  unsigned int rollingCode = 0;
-
-  if (request->hasParam("name", true))
-  {
-    AsyncWebParameter* p = request->getParam("name", true);
-    name = p->value();
-  }
-
-  if (request->hasParam("rolling_code", true))
-  {
-    AsyncWebParameter* p = request->getParam("rolling_code", true);
-    rollingCode = int(p->value().toInt());
-  }
-
-  Result result = controller.updateRemote(remoteId, name.c_str(), rollingCode);
-  if (!result.isSuccess)
-  {
-    request->send(400, "application/json", "{\"message\":\"" + result.error + "\"}");
-    return;
-  }
-  request->send(200, "application/json", result.data);
-}
-
-void handleDeleteRemote(AsyncWebServerRequest* request)
-{
-  LOG_INFO("Endpoint to delete a remote reached.");
-  unsigned long remoteId = request->pathArg(0).toInt();
-
-  Result result = controller.deleteRemote(remoteId);
-  if (!result.isSuccess)
-  {
-    request->send(400, "application/json", "{\"message\":\"" + result.error + "\"}");
-    return;
-  }
-  request->send(200, "application/json", "{\"message\":\"The remote has been deleted.\"}");
-}
-
-void handleActionRemote(AsyncWebServerRequest* request)
-{
-  LOG_INFO("Endpoint to operate an action on a remote reached.");
-  unsigned long remoteId = request->pathArg(0).toInt();
-
-  String action;
-  if (request->hasParam("action", true))
-  {
-    AsyncWebParameter* p = request->getParam("action", true);
-    action = p->value();
-  }
-
-  Result result = controller.operateRemote(remoteId, action.c_str());
-  if (!result.isSuccess)
-  {
-    request->send(400, "application/json", "{\"message\":\"" + result.error + "\"}");
-    return;
-  }
-  request->send(200, "application/json", "{\"message\":\"" + result.data + "\"}");
-}
+JSONSerializer serializer;
+MQTTClient mqttClient(&controller, &serializer);
+WebServer server(SERVER_PORT, &controller, &serializer);
 
 // ============================================================================
 // SETUP
@@ -311,7 +68,7 @@ void setup()
   while (!Serial)
     continue;
   // Wait one second to avoid bad chars in serial
-  delay(5000);
+  delay(2000);
 
   // Open the output for 433.42MHz and 433.92MHz transmitter
   LOG_INFO("Initializing pin for transmitter...");
@@ -334,8 +91,9 @@ void setup()
   }
 
   // WIFI Setup
-  LOG_INFO("Fetching all wifi networks...");
-  wifiClient.getNetworks(networks);
+  LOG_INFO("Scanning all wifi networks...");
+  wifiClient.scanNetworks();
+
   LOG_INFO("Trying WiFi connection...");
   NetworkConfiguration networkConfig = database.getNetworkConfiguration();
   if (strlen(networkConfig.ssid) == 0)
@@ -362,34 +120,37 @@ void setup()
     }
   }
 
+  // MQTT setup
+  LOG_INFO("Setuping MQTT...");
+  MQTTConfiguration mqttConfig = database.getMQTTConfiguration();
+  if (mqttConfig.enabled)
+  {
+    if (wifiClient.isConnected())
+    {
+      mqttClient.connect(mqttConfig);
+      controller.attach(&mqttClient); // Connect mqttClient to the observer
+    }
+    else
+    {
+      LOG_WARN("Not connected to a network. MQTT client cannot be started.");
+    }
+  }
+  else
+  {
+    LOG_INFO("MQTT is not enabled. Nothing to do.");
+  }
+
   // SERVER setup
-  // HTML
-  DefaultHeaders::Instance().addHeader("Access-Control-Allow-Origin", "*");
-  server.serveStatic("/", LittleFS, "/");
-  server.on("/", HTTP_GET, homePage);
-  // server.onNotFound(not_found_page);
-
-  // API REST
-  server.on("/api/v1/system/restart", HTTP_POST, handleSystemRestart);
-  server.on("/api/v1/system/infos", HTTP_GET, handleFetchSystemInfos);
-  server.on("/api/v1/wifi/networks", HTTP_GET, handleFetchWifiNetworks);
-  server.on("/api/v1/wifi/config", HTTP_GET, handleFetchWifiConfiguration);
-  server.on("/api/v1/wifi/config", HTTP_POST, handleUpdateWifiConfiguration);
-  server.on("/api/v1/mqtt/config", HTTP_GET, handleFetchMQTTConfiguration);
-  server.on("/api/v1/mqtt/config", HTTP_POST, handleUpdateMQTTConfiguration);
-  server.on("^\\/api/v1/remotes$", HTTP_GET, handleFetchAllRemotes);
-  server.on("^\\/api/v1/remotes$", HTTP_POST, handleCreateRemote);
-  server.on("^\\/api/v1/remotes\\/([0-9]+)$", HTTP_GET, handleFetchRemote);
-  server.on("^\\/api/v1/remotes\\/([0-9]+)$", HTTP_PATCH, handleUpdateRemote);
-  server.on("^\\/api/v1/remotes\\/([0-9]+)$", HTTP_DELETE, handleDeleteRemote);
-  server.on("^\\/api/v1/remotes\\/([0-9]+)\\/action$", HTTP_POST, handleActionRemote);
-
-  // Start the server
+  LOG_INFO("Setuping WebServer...");
+  server.setup();
   server.begin();
+  controller.attach(&server);
 }
 
 void loop()
 {
   // put your main code here, to run repeatedly:
+  mqttClient.handleMessages();
+  systemManager.handleActions();
 }
 #endif // PIO_UNIT_TESTING

@@ -27,15 +27,21 @@
  */
 #pragma once
 
+#include <config.h>
 #include <networks.h>
 #include <networkClientAbs.h>
 
-class WifiClient : public NetworkClientAbstract
+class NetworkWifiClient : public NetworkClientAbstract
 {
   public:
   bool connect(const NetworkConfiguration& conf);
   bool connect(const char* ssid, const char* password);
   String getIP();
+  String getMacAddress();
   bool isConnected();
+  void scanNetworks();
   void getNetworks(Network networks[]);
+
+  private:
+  Network m_networks[MAX_NETWORK_SCAN];
 };

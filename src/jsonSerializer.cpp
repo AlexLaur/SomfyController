@@ -35,6 +35,18 @@
 
 #include <jsonSerializer.h>
 
+String JSONSerializer::serializeMessage(const char* message)
+{
+  JsonDocument doc;
+  JsonObject object = doc.to<JsonObject>();
+
+  object["message"] = message;
+
+  String output;
+  serializeJson(doc, output);
+  return output;
+}
+
 String JSONSerializer::serializeRemote(const Remote& remote)
 {
   JsonDocument doc;
@@ -109,6 +121,20 @@ String JSONSerializer::serializeSystemInfos(const SystemInfos& infos)
   JsonObject object = doc.to<JsonObject>();
 
   object["version"] = infos.version;
+
+  String output;
+  serializeJson(doc, output);
+  return output;
+}
+
+String JSONSerializer::serializeSystemInfos(const SystemInfosExtended& infos)
+{
+  JsonDocument doc;
+  JsonObject object = doc.to<JsonObject>();
+
+  object["version"] = infos.version;
+  object["mac"] = infos.macAddress;
+  object["ip"] = infos.ipAddress;
 
   String output;
   serializeJson(doc, output);

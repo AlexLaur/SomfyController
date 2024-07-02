@@ -27,12 +27,13 @@
  */
 #pragma once
 
+const char APP_NAME[] = "ESP-RTSomfy";
 const char FIRMWARE_VERSION[] = "2.1.0";
 
-const char AP_SSID[] = "SomfyController Fallback Hotspot";
+const char AP_SSID[] = "ESP-RTSomfy Fallback Hotspot";
 const char AP_PASSWORD[] = "5cKErSRCyQzy";
 
-const int SERVER_PORT = 80;
+const unsigned short SERVER_PORT = 80;
 
 const unsigned short MAX_NETWORK_SCAN = 15;
 

@@ -33,7 +33,6 @@ TODO
 # TODO
 - [ ] Support non ASCII chars in names ?
 - [ ] Add OTA
-- [ ] What's happen if a neighbor has the same system ? (change base address ?)
 - [ ] MQTT support
 - [ ] Improve HTML part
 - [ ] Create a HA integration
